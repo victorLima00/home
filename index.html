@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOME - Organização do Apartamento</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🏠 HOME</h1>
+                <p>Organização do Apartamento | Prazo: Setembro 2027</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="progress-text"><span id="progressPercent">0</span>% concluído</p>
+            </div>
+        </header>
+
+        <!-- Navigation & Filters -->
+        <nav class="nav-filters">
+            <div class="filter-group">
+                <button class="filter-btn active" data-filter="all">Todos os Itens</button>
+                <button class="filter-btn" data-filter="urgente">🔴 Urgente</button>
+                <button class="filter-btn" data-filter="importante">🟡 Importante</button>
+                <button class="filter-btn" data-filter="normal">🟢 Normal</button>
+                <button class="filter-btn" data-filter="pendente">⏳ Pendente</button>
+                <button class="filter-btn" data-filter="comprado">✅ Comprado</button>
+            </div>
+            <div class="view-group">
+                <button class="view-btn active" data-view="sections" title="Visualizar por Seção">📋</button>
+                <button class="view-btn" data-view="comodos" title="Visualizar por Cômodo">🏘️</button>
+                <button class="view-btn" data-view="prioridade" title="Visualizar por Prioridade">⚡</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sections View -->
+            <div class="view-container" id="sectionsView">
+                <!-- Reforma -->
+                <section class="section" id="reforma">
+                    <div class="section-header">
+                        <h2>🔨 Reforma</h2>
+                        <span class="section-stats" id="stats-reforma">0/0</span>
+                    </div>
+                    
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Cozinha Integrada</h3>
+                            <span class="comodo-stats" id="stats-reforma-cozinha">0/0</span>
+                        </div>
+                        <ul class="items-list" id="reforma-cozinha"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Banheiro</h3>
+                            <span class="comodo-stats" id="stats-reforma-banheiro">0/0</span>
+                        </div>
+                        <ul class="items-list" id="reforma-banheiro"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Quarto Principal</h3>
+                            <span class="comodo-stats" id="stats-reforma-quarto">0/0</span>
+                        </div>
+                        <ul class="items-list" id="reforma-quarto"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Escritório</h3>
+                            <span class="comodo-stats" id="stats-reforma-escritorio">0/0</span>
+                        </div>
+                        <ul class="items-list" id="reforma-escritorio"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Sacada</h3>
+                            <span class="comodo-stats" id="stats-reforma-sacada">0/0</span>
+                        </div>
+                        <ul class="items-list" id="reforma-sacada"></ul>
+                    </div>
+                </section>
+
+                <!-- Móveis Planejados -->
+                <section class="section" id="moveis">
+                    <div class="section-header">
+                        <h2>🛋️ Móveis Planejados</h2>
+                        <span class="section-stats" id="stats-moveis">0/0</span>
+                    </div>
+                    
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Cozinha Integrada</h3>
+                            <span class="comodo-stats" id="stats-moveis-cozinha">0/0</span>
+                        </div>
+                        <ul class="items-list" id="moveis-cozinha"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Sala</h3>
+                            <span class="comodo-stats" id="stats-moveis-sala">0/0</span>
+                        </div>
+                        <ul class="items-list" id="moveis-sala"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Quarto Principal</h3>
+                            <span class="comodo-stats" id="stats-moveis-quarto">0/0</span>
+                        </div>
+                        <ul class="items-list" id="moveis-quarto"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Escritório</h3>
+                            <span class="comodo-stats" id="stats-moveis-escritorio">0/0</span>
+                        </div>
+                        <ul class="items-list" id="moveis-escritorio"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Banheiro</h3>
+                            <span class="comodo-stats" id="stats-moveis-banheiro">0/0</span>
+                        </div>
+                        <ul class="items-list" id="moveis-banheiro"></ul>
+                    </div>
+                </section>
+
+                <!-- Itens Gerais -->
+                <section class="section" id="itens">
+                    <div class="section-header">
+                        <h2>📦 Itens Gerais da Casa</h2>
+                        <span class="section-stats" id="stats-itens">0/0</span>
+                    </div>
+                    
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Cozinha</h3>
+                            <span class="comodo-stats" id="stats-itens-cozinha">0/0</span>
+                        </div>
+                        <ul class="items-list" id="itens-cozinha"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Quarto</h3>
+                            <span class="comodo-stats" id="stats-itens-quarto">0/0</span>
+                        </div>
+                        <ul class="items-list" id="itens-quarto"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Sala</h3>
+                            <span class="comodo-stats" id="stats-itens-sala">0/0</span>
+                        </div>
+                        <ul class="items-list" id="itens-sala"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Banheiro</h3>
+                            <span class="comodo-stats" id="stats-itens-banheiro">0/0</span>
+                        </div>
+                        <ul class="items-list" id="itens-banheiro"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Lavanderia</h3>
+                            <span class="comodo-stats" id="stats-itens-lavanderia">0/0</span>
+                        </div>
+                        <ul class="items-list" id="itens-lavanderia"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Escritório</h3>
+                            <span class="comodo-stats" id="stats-itens-escritorio">0/0</span>
+                        </div>
+                        <ul class="items-list" id="itens-escritorio"></ul>
+                    </div>
+
+                    <div class="comodo-group">
+                        <div class="comodo-header">
+                            <h3>Sacada</h3>
+                            <span class="comodo-stats" id="stats-itens-sacada">0/0</span>
+                        </div>
+                        <ul class="items-list" id="itens-sacada"></ul>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Comodos View -->
+            <div class="view-container" id="comodosView" style="display: none;">
+                <!-- Cozinha Integrada -->
+                <section class="section comodo-section">
+                    <div class="section-header">
+                        <h2>👨‍🍳 Cozinha Integrada (com Lavanderia e Sala)</h2>
+                        <span class="section-stats" id="stats-cozinha-total">0/0</span>
+                    </div>
+                    <ul class="items-list" id="comodo-cozinha-all"></ul>
+                </section>
+
+                <!-- Sala -->
+                <section class="section comodo-section">
+                    <div class="section-header">
+                        <h2>🛋️ Sala</h2>
+                        <span class="section-stats" id="stats-sala-total">0/0</span>
+                    </div>
+                    <ul class="items-list" id="comodo-sala-all"></ul>
+                </section>
+
+                <!-- Quarto Principal -->
+                <section class="section comodo-section">
+                    <div class="section-header">
+                        <h2>🛏️ Quarto Principal</h2>
+                        <span class="section-stats" id="stats-quarto-total">0/0</span>
+                    </div>
+                    <ul class="items-list" id="comodo-quarto-all"></ul>
+                </section>
+
+                <!-- Banheiro -->
+                <section class="section comodo-section">
+                    <div class="section-header">
+                        <h2>🚿 Banheiro</h2>
+                        <span class="section-stats" id="stats-banheiro-total">0/0</span>
+                    </div>
+                    <ul class="items-list" id="comodo-banheiro-all"></ul>
+                </section>
+
+                <!-- Escritório -->
+                <section class="section comodo-section">
+                    <div class="section-header">
+                        <h2>💼 Escritório</h2>
+                        <span class="section-stats" id="stats-escritorio-total">0/0</span>
+                    </div>
+                    <ul class="items-list" id="comodo-escritorio-all"></ul>
+                </section>
+
+                <!-- Sacada -->
+                <section class="section comodo-section">
+                    <div class="section-header">
+                        <h2>🌳 Sacada</h2>
+                        <span class="section-stats" id="stats-sacada-total">0/0</span>
+                    </div>
+                    <ul class="items-list" id="comodo-sacada-all"></ul>
+                </section>
+
+                <!-- Lavanderia -->
+                <section class="section comodo-section">
+                    <div class="section-header">
+                        <h2>🧺 Lavanderia</h2>
+                        <span class="section-stats" id="stats-lavanderia-total">0/0</span>
+                    </div>
+                    <ul class="items-list" id="comodo-lavanderia-all"></ul>
+                </section>
+            </div>
+
+            <!-- Priority View -->
+            <div class="view-container" id="prioridadeView" style="display: none;">
+                <section class="section priority-section">
+                    <div class="section-header">
+                        <h2>🔴 Urgente (Comprar primeiro!)</h2>
+                        <span class="section-stats" id="stats-urgente-total">0/0</span>
+                    </div>
+                    <ul class="items-list" id="priority-urgente"></ul>
+                </section>
+
+                <section class="section priority-section">
+                    <div class="section-header">
+                        <h2>🟡 Importante</h2>
+                        <span class="section-stats" id="stats-importante-total">0/0</span>
+                    </div>
+                    <ul class="items-list" id="priority-importante"></ul>
+                </section>
+
+                <section class="section priority-section">
+                    <div class="section-header">
+                        <h2>🟢 Normal</h2>
+                        <span class="section-stats" id="stats-normal-total">0/0</span>
+                    </div>
+                    <ul class="items-list" id="priority-normal"></ul>
+                </section>
+            </div>
+        </main>
+
+        <!-- Add Item Form -->
+        <aside class="add-item-panel">
+            <h3>➕ Adicionar Item</h3>
+            <form id="addItemForm">
+                <div class="form-group">
+                    <label for="itemName">Nome do Item:</label>
+                    <input type="text" id="itemName" placeholder="Ex: Cortina para o quarto" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemSection">Seção:</label>
+                        <select id="itemSection" required>
+                            <option value="">Selecione...</option>
+                            <option value="reforma">🔨 Reforma</option>
+                            <option value="moveis">🛋️ Móveis Planejados</option>
+                            <option value="itens">📦 Itens Gerais</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="itemComodo">Cômodo:</label>
+                        <select id="itemComodo" required>
+                            <option value="">Selecione...</option>
+                            <option value="cozinha">Cozinha Integrada</option>
+                            <option value="sala">Sala</option>
+                            <option value="quarto">Quarto Principal</option>
+                            <option value="banheiro">Banheiro</option>
+                            <option value="escritorio">Escritório</option>
+                            <option value="sacada">Sacada</option>
+                            <option value="lavanderia">Lavanderia</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemPriority">Prioridade:</label>
+                        <select id="itemPriority" required>
+                            <option value="urgente">🔴 Urgente</option>
+                            <option value="importante">🟡 Importante</option>
+                            <option value="normal">🟢 Normal</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="itemResponsavel">Responsável:</label>
+                        <select id="itemResponsavel" required>
+                            <option value="">Selecione...</option>
+                            <option value="ambos">👫 Ambos</option>
+                            <option value="homem">👨 Homem</option>
+                            <option value="mulher">👩 Mulher</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemNotes">Notas (opcional):</label>
+                    <textarea id="itemNotes" placeholder="Ex: Cor azul, tamanho 200x180"></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Adicionar Item</button>
+            </form>
+        </aside>
+    </div>
+
+    <!-- Modal for editing items -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Editar Item</h2>
+            <form id="editItemForm">
+                <div class="form-group">
+                    <label for="editItemName">Nome:</label>
+                    <input type="text" id="editItemName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editItemNotes">Notas:</label>
+                    <textarea id="editItemNotes"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editItemResponsavel">Responsável:</label>
+                    <select id="editItemResponsavel">
+                        <option value="ambos">👫 Ambos</option>
+                        <option value="homem">👨 Homem</option>
+                        <option value="mulher">👩 Mulher</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit">Salvar</button>
+                <button type="button" id="buscarPromocoesBtn" class="btn-secondary">🔍 Buscar Promoções</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Promoções Modal -->
+    <div id="promocoesModal" class="modal">
+        <div class="modal-content modal-promocoes">
+            <span class="close">&times;</span>
+            <h2>🎉 Promoções Encontradas</h2>
+            <div id="loadingPromo" class="loading" style="display:none;">
+                <p>🔍 Buscando promoções...</p>
+            </div>
+            <div id="promocoesContent"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (Compat - Traditional Scripts) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    
+    <script src="script.js"></script>
+</body>
+</html>

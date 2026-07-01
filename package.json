@@ -1,0 +1,25 @@
+{
+  "name": "home-organizador",
+  "version": "1.0.0",
+  "description": "Organizador de apartamento com busca de promoções",
+  "main": "backend.js",
+  "scripts": {
+    "start": "node backend.js",
+    "dev": "node backend.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^2.7.0",
+    "cheerio": "^1.0.0-rc.12"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "home",
+    "organizador",
+    "firebase",
+    "promocoes"
+  ],
+  "author": "Victor",
+  "license": "MIT"
+}
