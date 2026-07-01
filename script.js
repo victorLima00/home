@@ -300,6 +300,9 @@ function loadDataFromLocalStorage() {
     renderAll();
 }
 
+// Render something immediately so mobile browsers don't sit on a blank screen
+loadDataFromLocalStorage();
+
 // Get item by ID
 function getItemById(id) {
     return APP_DATA.items.find(item => item.id === id);
@@ -745,7 +748,7 @@ function exibirResultadosPromocoes(data) {
         content.innerHTML = `
             <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
                 <p>😔 Nenhuma promoção encontrada para "${data.query}"</p>
-                <p style="font-size: 0.9rem;">Tente buscar novamente ou modifique os filtros</p>
+                <p style="font-size: 0.9rem;">Tente abrir de novo com um nome mais curto ou usar só o nome do item</p>
             </div>
         `;
         return;
@@ -758,7 +761,7 @@ function exibirResultadosPromocoes(data) {
         
         html += `
             <div class="promocoes-source">
-                <h3>${source.source === 'Mercado Livre' ? '🛍️' : source.source === 'Amazon' ? '📦' : '🏪'} ${source.source}</h3>
+                <h3>${source.source === 'Mercado Livre' ? '🛍️' : source.source === 'Amazon' ? '📦' : '🏪'} ${source.source}${source.searchUsed ? ` <span class="promo-search-used">(${source.searchUsed})</span>` : ''}</h3>
                 <div class="promocoes-grid">
         `;
         

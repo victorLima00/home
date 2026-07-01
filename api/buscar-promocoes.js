@@ -1,4 +1,3 @@
-const fetch = require('node-fetch');
 const cheerio = require('cheerio');
 
 function setCorsHeaders(res) {
@@ -35,6 +34,36 @@ async function buscarMercadoLivre(query) {
         console.error('Erro em Mercado Livre:', error.message);
         return { source: 'Mercado Livre', results: [], error: error.message };
     }
+}
+
+function normalizarTermos(texto) {
+    return (texto || '')
+        .toLowerCase()
+        .replace(/[.,;:!?()\[\]{}"'`]/g, ' ')
+        .split(/\s+/)
+        .map((termo) => termo.trim())
+        .filter(Boolean)
+        .filter((termo) => termo.length > 2)
+        .filter((termo) => !['que', 'uma', 'um', 'para', 'com', 'sem', 'pra', 'e', 'de', 'do', 'da', 'dos', 'das', 'em', 'no', 'na', 'nos', 'nas', 'tipo', 'parece', 'imita'].includes(termo));
+}
+
+function construirConsultas(itemName, notes) {
+    const termosNotas = normalizarTermos(notes).slice(0, 4);
+    const consultas = [];
+
+    if (itemName && termosNotas.length > 0) {
+        consultas.push(`${itemName} ${termosNotas.join(' ')}`.trim());
+    }
+
+    if (itemName) {
+        consultas.push(itemName.trim());
+    }
+
+    if (termosNotas.length > 0) {
+        consultas.push(termosNotas.join(' '));
+    }
+
+    return [...new Set(consultas)];
 }
 
 async function buscarAmazon(query) {
@@ -144,19 +173,32 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'itemName é obrigatório' });
     }
 
-    const query = notes ? `${itemName} ${notes}` : itemName;
+    const consultas = construirConsultas(itemName, notes);
+    const queryPrincipal = consultas[0] || itemName;
 
     try {
-        const [mlResults, amazonResults, magazineResults] = await Promise.all([
-            buscarMercadoLivre(query),
-            buscarAmazon(query),
-            buscarMagazineLuiza(query)
-        ]);
+        const fontes = [buscarMercadoLivre, buscarAmazon, buscarMagazineLuiza];
+        const sources = [];
 
-        const sources = [mlResults, amazonResults, magazineResults].filter((source) => source.results.length > 0);
+        for (const fonte of fontes) {
+            let resultadoFonte = { results: [] };
+
+            for (const consulta of consultas) {
+                resultadoFonte = await fonte(consulta);
+                if (resultadoFonte.results && resultadoFonte.results.length > 0) {
+                    resultadoFonte.searchUsed = consulta;
+                    break;
+                }
+            }
+
+            if (resultadoFonte.results && resultadoFonte.results.length > 0) {
+                sources.push(resultadoFonte);
+            }
+        }
 
         return res.status(200).json({
-            query,
+            query: queryPrincipal,
+            consultas,
             timestamp: new Date().toISOString(),
             sources
         });
