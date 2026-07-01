@@ -354,6 +354,7 @@ function createItemElement(item, currentFilter = 'all') {
             </div>
         </div>
         <div class="item-actions">
+            <button class="btn-action btn-promo" data-id="${item.id}" title="Buscar Promoções">🔍</button>
             <button class="btn-action btn-edit" data-id="${item.id}" title="Editar">✏️</button>
             <button class="btn-action btn-delete" data-id="${item.id}" title="Deletar">🗑️</button>
         </div>
@@ -365,6 +366,10 @@ function createItemElement(item, currentFilter = 'all') {
         toggleItemCompletionInFirestore(item.id, item.completed);
     });
     
+    li.querySelector('.btn-promo').addEventListener('click', () => {
+        openPromocoesForItem(item.id);
+    });
+
     li.querySelector('.btn-edit').addEventListener('click', () => {
         openEditModal(item.id);
     });
@@ -669,26 +674,30 @@ function getPromoApiUrl() {
 
 let currentItemForPromo = null;
 
+function openPromocoesForItem(itemId) {
+    const item = getItemById(itemId);
+    if (!item) return;
+
+    currentItemForPromo = item;
+
+    const modal = document.getElementById('promocoesModal');
+    const content = document.getElementById('promocoesContent');
+    const loading = document.getElementById('loadingPromo');
+
+    loading.style.display = 'block';
+    content.innerHTML = '';
+    modal.classList.add('show');
+
+    buscarPromocoes(item.name, item.notes);
+}
+
 function openPromocoesModal() {
     if (!editingItemId) {
         showMessage('⚠️ Selecione um item primeiro', 'warning');
         return;
     }
     
-    const item = getItemById(editingItemId);
-    if (!item) return;
-    
-    currentItemForPromo = item;
-    
-    const modal = document.getElementById('promocoesModal');
-    const content = document.getElementById('promocoesContent');
-    const loading = document.getElementById('loadingPromo');
-    
-    loading.style.display = 'block';
-    content.innerHTML = '';
-    modal.classList.add('show');
-    
-    buscarPromocoes(item.name, item.notes);
+    openPromocoesForItem(editingItemId);
 }
 
 function closePromocoesModal() {
