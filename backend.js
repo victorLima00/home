@@ -9,164 +9,232 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// ==================== MERCADO LIVRE API ====================
+// ==================== FONTES GRATUITAS ====================
 
-async function buscarMercadoLivre(query) {
-    try {
-        const response = await fetch(
-            `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}&sort=price_asc&limit=10`,
-            { timeout: 10000 }
-        );
-        
-        if (!response.ok) throw new Error('ML API error');
-        
-        const data = await response.json();
-        
-        return {
-            source: 'Mercado Livre',
-            results: (data.results || []).slice(0, 8).map(item => ({
-                id: item.id,
-                title: item.title,
-                price: item.price,
-                currency_id: item.currency_id,
-                permalink: item.permalink,
-                thumbnail: item.thumbnail,
-                condition: item.condition,
-                seller_name: item.seller.nickname,
-                shipping: item.shipping.free_shipping ? 'Frete Grátis' : 'Frete a calcular'
-            }))
-        };
-    } catch (error) {
-        console.error('Erro em Mercado Livre:', error.message);
-        return { source: 'Mercado Livre', results: [], error: error.message };
-    }
+const ZOOM_BASE_URL = 'https://www.zoom.com.br';
+const KABUM_BASE_URL = 'https://www.kabum.com.br';
+
+function limparTexto(texto) {
+    return String(texto || '').replace(/\s+/g, ' ').trim();
 }
 
-// ==================== AMAZON SCRAPING SIMPLES ====================
+function normalizarPreco(texto) {
+    const valor = String(texto || '')
+        .replace(/[^\d,.-]/g, '')
+        .replace(/\.(?=\d{3}(?:\D|$))/g, '')
+        .replace(',', '.');
 
-async function buscarAmazon(query) {
+    const numero = Number.parseFloat(valor);
+    return Number.isFinite(numero) ? numero : null;
+}
+
+function extrairLinkAbsoluto(baseUrl, href) {
+    if (!href) return '#';
+    if (/^https?:\/\//i.test(href)) return href;
+    return `${baseUrl}${href.startsWith('/') ? '' : '/'}${href}`;
+}
+
+async function buscarZoom(query) {
     try {
-        const searchUrl = `https://www.amazon.com.br/s?k=${encodeURIComponent(query)}`;
-        
-        const response = await fetch(searchUrl, {
+        const response = await fetch(`${ZOOM_BASE_URL}/search?q=${encodeURIComponent(query)}`, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            },
-            timeout: 10000
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
+                'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8'
+            }
         });
-        
-        if (!response.ok) throw new Error('Amazon error');
-        
+
+        if (!response.ok) throw new Error(`Zoom error (${response.status})`);
+
         const html = await response.text();
         const $ = cheerio.load(html);
-        
         const results = [];
-        $('[data-component-type="s-search-result"]').each((index, element) => {
+
+        $('[data-testid="product-card::card"]').each((index, element) => {
             if (results.length >= 8) return;
-            
-            const title = $(element).find('h2 a span').text().trim();
-            const priceText = $(element).find('.a-price-whole').text().trim();
-            const link = $(element).find('h2 a').attr('href');
-            const image = $(element).find('img').attr('src');
-            
-            if (title && priceText) {
+
+            const card = $(element);
+            const title = limparTexto(card.find('[data-testid="product-card::name"]').first().text());
+            const priceText = limparTexto(card.find('[data-testid="product-card::price"]').first().text());
+            const link = card.find('a[href]').first().attr('href');
+            const image = card.find('img').first().attr('src');
+
+            if (title) {
                 results.push({
-                    title: title,
-                    price: parseFloat(priceText.replace(/[^\d,]/g, '').replace(',', '.')),
-                    link: link ? `https://www.amazon.com.br${link}` : '#',
-                    image: image,
-                    source: 'Amazon'
+                    title,
+                    price: normalizarPreco(priceText),
+                    link: extrairLinkAbsoluto(ZOOM_BASE_URL, link),
+                    image: image || '',
+                    source: 'Zoom'
                 });
             }
         });
-        
+
         return {
-            source: 'Amazon',
-            results: results
+            source: 'Zoom',
+            results
         };
     } catch (error) {
-        console.error('Erro em Amazon:', error.message);
-        return { source: 'Amazon', results: [], error: error.message };
+        console.error('Erro em Zoom:', error.message);
+        return { source: 'Zoom', results: [], error: error.message };
     }
 }
 
-// ==================== MAGAZINE LUIZA SCRAPING ====================
+function normalizarTermos(texto) {
+    return (texto || '')
+        .toLowerCase()
+        .replace(/[.,;:!?()\[\]{}"'`]/g, ' ')
+        .split(/\s+/)
+        .map((termo) => termo.trim())
+        .filter(Boolean)
+        .filter((termo) => termo.length > 2)
+        .filter((termo) => !['que', 'uma', 'um', 'para', 'com', 'sem', 'pra', 'e', 'de', 'do', 'da', 'dos', 'das', 'em', 'no', 'na', 'nos', 'nas', 'tipo', 'parece', 'imita'].includes(termo));
+}
 
-async function buscarMagazineLuiza(query) {
-    try {
-        const searchUrl = `https://www.magazineluiza.com.br/busca/${encodeURIComponent(query)}/`;
-        
-        const response = await fetch(searchUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            },
-            timeout: 10000
+function construirConsultas(itemName, notes) {
+    const termosNome = normalizarTermos(itemName);
+    const termosNotas = normalizarTermos(notes).slice(0, 4);
+    const consultas = [];
+
+    if (itemName && termosNotas.length > 0) {
+        consultas.push(`${itemName} ${termosNotas.join(' ')}`.trim());
+    }
+
+    if (itemName) {
+        consultas.push(itemName.trim());
+    }
+
+    if (termosNome.length > 1) {
+        consultas.push(termosNome.slice(0, 2).join(' '));
+        consultas.push(termosNome[0]);
+    }
+
+    if (termosNotas.length > 0) {
+        consultas.push(termosNotas.join(' '));
+    }
+
+    return [...new Set(consultas.filter(Boolean))];
+}
+
+async function buscarComFallback(fonte, consultas) {
+    const attempts = [];
+    let ultimoErro = null;
+
+    for (const consulta of consultas) {
+        const resultado = await fonte(consulta);
+        const total = Array.isArray(resultado.results) ? resultado.results.length : 0;
+
+        attempts.push({
+            query: consulta,
+            total,
+            error: resultado.error || null
         });
-        
-        if (!response.ok) throw new Error('Magazine Luiza error');
-        
+
+        if (total > 0) {
+            return {
+                ...resultado,
+                status: 'success',
+                searchUsed: consulta,
+                attempts
+            };
+        }
+
+        if (resultado.error) {
+            ultimoErro = resultado.error;
+        }
+    }
+
+    return {
+        source: attempts[0] ? undefined : 'Fonte',
+        results: [],
+        status: ultimoErro ? 'error' : 'empty',
+        error: ultimoErro,
+        searchUsed: consultas[0] || '',
+        attempts
+    };
+}
+
+// ==================== KABUM SCRAPING SIMPLES ====================
+
+async function buscarKaBuM(query) {
+    try {
+        const response = await fetch(`${KABUM_BASE_URL}/busca/${encodeURIComponent(query)}`, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
+                'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8'
+            },
+        });
+
+        if (!response.ok) throw new Error(`KaBuM error (${response.status})`);
+
         const html = await response.text();
         const $ = cheerio.load(html);
-        
         const results = [];
-        $('[data-testid="product-item"]').each((index, element) => {
+
+        $('[data-testid="product-card::card"]').each((index, element) => {
             if (results.length >= 8) return;
-            
-            const title = $(element).find('[data-testid="product-title"]').text().trim();
-            const priceText = $(element).find('[data-testid="product-price"]').text().trim();
-            const link = $(element).find('a').attr('href');
-            const image = $(element).find('img').attr('src');
-            
-            if (title && priceText) {
+
+            const card = $(element);
+            const title = limparTexto(card.find('[data-testid="product-card::name"]').first().text());
+            const priceText = limparTexto(card.find('[data-testid="product-card::price"]').first().text());
+            const link = card.find('a[href]').first().attr('href');
+            const image = card.find('img').first().attr('src');
+
+            if (title) {
                 results.push({
-                    title: title,
-                    price: parseFloat(priceText.replace(/[^\d,]/g, '').replace(',', '.')),
-                    link: link || '#',
-                    image: image,
-                    source: 'Magazine Luiza'
+                    title,
+                    price: normalizarPreco(priceText),
+                    link: extrairLinkAbsoluto(KABUM_BASE_URL, link),
+                    image: image || '',
+                    source: 'KaBuM'
                 });
             }
         });
-        
+
         return {
-            source: 'Magazine Luiza',
-            results: results
+            source: 'KaBuM',
+            results
         };
     } catch (error) {
-        console.error('Erro em Magazine Luiza:', error.message);
-        return { source: 'Magazine Luiza', results: [], error: error.message };
+        console.error('Erro em KaBuM:', error.message);
+        return { source: 'KaBuM', results: [], error: error.message };
     }
 }
 
 // ==================== MAIN ENDPOINT ====================
 
 app.post('/api/buscar-promocoes', async (req, res) => {
-    const { itemName, notes } = req.body;
+    const { itemName, notes } = req.body || {};
     
     if (!itemName) {
         return res.status(400).json({ error: 'itemName é obrigatório' });
     }
     
-    // Formatar query com as notas
-    const query = notes ? `${itemName} ${notes}` : itemName;
+    const consultas = construirConsultas(itemName, notes);
+    const queryPrincipal = consultas[0] || itemName;
     
-    console.log(`🔍 Buscando: "${query}"`);
+    console.log(`🔍 Buscando: "${queryPrincipal}"`);
     
     try {
-        // Fazer buscas em paralelo
-        const [mlResults, amazonResults, magazineResults] = await Promise.all([
-            buscarMercadoLivre(query),
-            buscarAmazon(query),
-            buscarMagazineLuiza(query)
-        ]);
+        const fontes = [buscarZoom, buscarKaBuM];
+        const resultados = await Promise.all(fontes.map((fonte) => buscarComFallback(fonte, consultas)));
+
+        const sources = resultados.map((resultado, index) => ({
+            source: resultado.source || (index === 0 ? 'Zoom' : 'KaBuM'),
+            results: Array.isArray(resultado.results) ? resultado.results : [],
+            status: resultado.status || (resultado.results && resultado.results.length > 0 ? 'success' : 'empty'),
+            error: resultado.error || null,
+            searchUsed: resultado.searchUsed || consultas[0] || itemName,
+            attempts: Array.isArray(resultado.attempts) ? resultado.attempts : []
+        }));
         
         const results = {
-            query: query,
+            query: queryPrincipal,
+            consultas,
             timestamp: new Date().toISOString(),
-            sources: [mlResults, amazonResults, magazineResults].filter(s => s.results.length > 0)
+            sources
         };
         
-        console.log(`✅ Resultados encontrados: ${results.sources.length} fontes`);
+        console.log(`✅ Resultados encontrados: ${results.sources.filter((source) => source.results.length > 0).length} fontes`);
         res.json(results);
     } catch (error) {
         console.error('Erro na busca:', error);

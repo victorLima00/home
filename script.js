@@ -708,6 +708,143 @@ function closePromocoesModal() {
     currentItemForPromo = null;
 }
 
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+async function buildPromoError(response) {
+    let payload = null;
+    let rawText = '';
+
+    try {
+        payload = await response.json();
+    } catch (jsonError) {
+        try {
+            rawText = await response.text();
+        } catch (textError) {
+            rawText = '';
+        }
+    }
+
+    const error = new Error(`HTTP error! status: ${response.status}`);
+    error.status = response.status;
+    error.payload = payload;
+    error.rawText = rawText;
+    return error;
+}
+
+function getPromoErrorDetails(error) {
+    if (error.status === 401 && error.payload && error.payload.error && error.payload.error.message === 'Protected deployment') {
+        return {
+            title: '🔒 API de promoções bloqueada no Vercel',
+            message: 'O deploy atual está protegido e a rota /api/buscar-promocoes está retornando 401 antes de executar a busca.',
+            action: 'Libere a Deployment Protection desse projeto no Vercel ou teste localmente com o comando abaixo.'
+        };
+    }
+
+    if (error.status) {
+        const backendMessage = error.payload && (error.payload.message || error.payload.error);
+
+        return {
+            title: `⚠️ Erro ao buscar promoções (${error.status})`,
+            message: backendMessage || 'A API respondeu com erro e não conseguiu processar a busca.',
+            action: 'Rode o teste local automatizado para validar se o backend está respondendo corretamente fora do deploy.'
+        };
+    }
+
+    if (error instanceof TypeError) {
+        return {
+            title: '⚠️ Não foi possível conectar à API de promoções',
+            message: window.location.protocol === 'file:'
+                ? 'Ao abrir o index.html direto no navegador, a busca depende do backend local em http://localhost:3001.'
+                : 'A página não conseguiu alcançar a API na mesma origem do site.',
+            action: 'Execute o teste local automatizado para subir o backend, validar o endpoint e encerrá-lo sozinho.'
+        };
+    }
+
+    return {
+        title: '⚠️ Erro ao buscar promoções',
+        message: error.message || 'Falha inesperada ao consultar as promoções.',
+        action: 'Execute o teste local automatizado para validar o backend e isolar se o problema é do deploy ou da API.'
+    };
+}
+
+function renderPromoError(error) {
+    const details = getPromoErrorDetails(error);
+
+    document.getElementById('loadingPromo').style.display = 'none';
+    document.getElementById('promocoesContent').innerHTML = `
+        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <p>${escapeHtml(details.title)}</p>
+            <p style="font-size: 0.95rem; line-height: 1.5;">${escapeHtml(details.message)}</p>
+            <p style="font-size: 0.9rem; margin-top: 1rem;">${escapeHtml(details.action)}</p>
+            <p style="font-size: 0.85rem; margin-top: 1rem; color: var(--text-muted);">Comando: npm run test:promo-local</p>
+        </div>
+    `;
+}
+
+function getPromoSourceIcon(sourceName) {
+    if (sourceName === 'Zoom') return '🔎';
+    if (sourceName === 'KaBuM') return '🧰';
+    return '🏪';
+}
+
+function getPromoSourceStatus(source) {
+    if (source.status === 'success' && source.results && source.results.length > 0) {
+        return {
+            label: `${source.results.length} resultado(s) encontrados`,
+            cssClass: 'promo-status-success'
+        };
+    }
+
+    if (source.error && /timeout/i.test(source.error)) {
+        return {
+            label: 'Tempo limite excedido ao consultar esta loja',
+            cssClass: 'promo-status-warning'
+        };
+    }
+
+    if (source.error) {
+        return {
+            label: source.error,
+            cssClass: 'promo-status-error'
+        };
+    }
+
+    return {
+        label: 'Nenhum resultado para as consultas tentadas',
+        cssClass: 'promo-status-empty'
+    };
+}
+
+function renderPromoAttempts(source) {
+    if (!Array.isArray(source.attempts) || source.attempts.length === 0) {
+        return '';
+    }
+
+    const attemptsHtml = source.attempts.map((attempt) => {
+        const suffix = attempt.total > 0
+            ? `: ${attempt.total} resultado(s)`
+            : attempt.error
+                ? `: ${escapeHtml(attempt.error)}`
+                : ': sem resultados';
+
+        return `<li>${escapeHtml(attempt.query)}${suffix}</li>`;
+    }).join('');
+
+    return `
+        <div class="promo-attempts">
+            <p class="promo-attempts-title">Consultas testadas</p>
+            <ul class="promo-attempts-list">${attemptsHtml}</ul>
+        </div>
+    `;
+}
+
 async function buscarPromocoes(itemName, notes) {
     try {
         const response = await fetch(getPromoApiUrl(), {
@@ -722,21 +859,14 @@ async function buscarPromocoes(itemName, notes) {
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw await buildPromoError(response);
         }
         
         const data = await response.json();
         exibirResultadosPromocoes(data);
     } catch (error) {
         console.error('Erro ao buscar promoções:', error);
-        document.getElementById('loadingPromo').style.display = 'none';
-        document.getElementById('promocoesContent').innerHTML = `
-            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                <p>⚠️ Erro ao buscar promoções</p>
-                <p style="font-size: 0.9rem;">Se estiver testando localmente com arquivo aberto, rode o backend com <code>npm start</code>.</p>
-                <p style="font-size: 0.85rem; margin-top: 1rem;">Em deploy, a API roda junto com o site na mesma origem.</p>
-            </div>
-        `;
+        renderPromoError(error);
     }
 }
 
@@ -753,15 +883,54 @@ function exibirResultadosPromocoes(data) {
         `;
         return;
     }
+
+    const hasResults = data.sources.some((source) => Array.isArray(source.results) && source.results.length > 0);
+
+    if (!hasResults) {
+        let emptyHtml = `
+            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                <p>😔 Nenhuma promoção encontrada para "${escapeHtml(data.query)}"</p>
+                <p style="font-size: 0.9rem;">Abaixo está o status de cada loja e das consultas tentadas.</p>
+            </div>
+        `;
+
+        data.sources.forEach((source) => {
+            const status = getPromoSourceStatus(source);
+            emptyHtml += `
+                <div class="promocoes-source promocoes-source-empty">
+                    <h3>${getPromoSourceIcon(source.source)} ${escapeHtml(source.source)}${source.searchUsed ? ` <span class="promo-search-used">(${escapeHtml(source.searchUsed)})</span>` : ''}</h3>
+                    <div class="promo-empty-state">
+                        <p class="${status.cssClass}">${escapeHtml(status.label)}</p>
+                        ${renderPromoAttempts(source)}
+                    </div>
+                </div>
+            `;
+        });
+
+        content.innerHTML = emptyHtml;
+        return;
+    }
     
     let html = '';
     
     data.sources.forEach(source => {
-        if (!source.results || source.results.length === 0) return;
+        if (!source.results || source.results.length === 0) {
+            const status = getPromoSourceStatus(source);
+            html += `
+                <div class="promocoes-source promocoes-source-empty">
+                    <h3>${getPromoSourceIcon(source.source)} ${escapeHtml(source.source)}${source.searchUsed ? ` <span class="promo-search-used">(${escapeHtml(source.searchUsed)})</span>` : ''}</h3>
+                    <div class="promo-empty-state">
+                        <p class="${status.cssClass}">${escapeHtml(status.label)}</p>
+                        ${renderPromoAttempts(source)}
+                    </div>
+                </div>
+            `;
+            return;
+        }
         
         html += `
             <div class="promocoes-source">
-                <h3>${source.source === 'Mercado Livre' ? '🛍️' : source.source === 'Amazon' ? '📦' : '🏪'} ${source.source}${source.searchUsed ? ` <span class="promo-search-used">(${source.searchUsed})</span>` : ''}</h3>
+                <h3>${getPromoSourceIcon(source.source)} ${escapeHtml(source.source)}${source.searchUsed ? ` <span class="promo-search-used">(${escapeHtml(source.searchUsed)})</span>` : ''}</h3>
                 <div class="promocoes-grid">
         `;
         
