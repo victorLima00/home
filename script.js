@@ -354,7 +354,7 @@ function createItemElement(item, currentFilter = 'all') {
             </div>
         </div>
         <div class="item-actions">
-            <button class="btn-action btn-promo" data-id="${item.id}" title="Buscar Promoções">🔍</button>
+            <button class="btn-action btn-promo" data-id="${item.id}" title="Buscar Promoções">🔍 Promo</button>
             <button class="btn-action btn-edit" data-id="${item.id}" title="Editar">✏️</button>
             <button class="btn-action btn-delete" data-id="${item.id}" title="Deletar">🗑️</button>
         </div>
