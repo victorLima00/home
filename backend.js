@@ -3,6 +3,7 @@ const cors = require('cors');
 const { buscarPromocoes } = require('./backend/services/promocoes-service');
 const { createLogger } = require('./backend/observability/logger');
 const { toSnapshot } = require('./backend/observability/promocoes-metrics');
+const { buildOperationalDiagnostics } = require('./backend/observability/operational-diagnostics');
 const {
   buildHealthSnapshot,
   buildReadinessReport
@@ -120,6 +121,15 @@ app.get('/ready', (req, res) => {
 
 app.get('/metrics/promocoes', (req, res) => {
   return res.status(200).json(toSnapshot());
+});
+
+app.get('/ops/promocoes/summary', (req, res) => {
+  const diagnostics = buildOperationalDiagnostics({
+    runtime: 'local-server',
+    metricsSnapshot: toSnapshot()
+  });
+
+  return res.status(200).json(diagnostics);
 });
 
 app.listen(PORT, () => {
