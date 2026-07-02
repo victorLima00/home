@@ -20,7 +20,8 @@ Objetivo:
 - Lote 12 (Endurecimento de erros e telemetria de adapters externos): concluido.
 - Lote 13 (Endpoint consolidado de health/readiness para runtime local e serverless): concluido.
 - Lote 14 (Estrategia de retry/backoff por fonte com politicas configuraveis): concluido.
-- Proximo lote: Lote 15 (Circuit breaker simples por fonte com degradacao controlada).
+- Lote 15 (Circuit breaker simples por fonte com degradacao controlada): concluido.
+- Proximo lote: Lote 16 (Endpoint de diagnostico resumido para analise operacional rapida).
 
 ## Evidencias por lote
 
@@ -91,9 +92,9 @@ Status:
 
 ## Pendencias atuais
 
-1. Lote 15 - Circuit breaker simples por fonte com degradacao controlada.
-2. Lote 16 - Endpoint de diagnostico resumido para analise operacional rapida.
-3. Lote 17 - Politica de timeout por fonte e orcamento de latencia por request.
+1. Lote 16 - Endpoint de diagnostico resumido para analise operacional rapida.
+2. Lote 17 - Politica de timeout por fonte e orcamento de latencia por request.
+3. Lote 18 - SLO basico de promocoes com budget de erro por janela.
 
 ## Riscos residuais
 
@@ -102,7 +103,7 @@ Status:
 
 ## Proxima acao recomendada
 
-- Iniciar Lote 15 implementando circuit breaker por fonte com janela curta e reabertura controlada.
+- Iniciar Lote 16 implementando endpoint de diagnostico operacional resumido para suporte.
 
 ### Lote 4 - Contracts de promocoes com Zod
 
@@ -362,6 +363,34 @@ Arquivos alterados:
 
 - backend/adapters/promotion-sources/retry-backoff.js
 - backend/adapters/promotion-sources/retry-backoff.test.js
+- backend/composition/promocoes.composition.js
+- backend/observability/promocoes-metrics.js
+- package.json
+
+Validacoes executadas:
+
+- npm run test:unit
+- npm run test:contracts
+- npm run lint
+- npm run typecheck
+- npm run test:promo-local
+
+Status:
+
+- Aprovado.
+
+### Lote 15 - Circuit breaker simples por fonte com degradacao controlada
+
+Escopo:
+
+- Implementar circuit breaker por fonte com janela curta de falhas e cooldown de reabertura.
+- Integrar estado de circuito na composicao (closed/open/half_open) com short-circuit em fonte indisponivel.
+- Enriquecer metricas e logs com eventos de abertura, half-open, fechamento e short-circuit.
+
+Arquivos alterados:
+
+- backend/adapters/promotion-sources/circuit-breaker.js
+- backend/adapters/promotion-sources/circuit-breaker.test.js
 - backend/composition/promocoes.composition.js
 - backend/observability/promocoes-metrics.js
 - package.json

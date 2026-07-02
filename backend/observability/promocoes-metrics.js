@@ -22,8 +22,13 @@ function ensureSource(sourceName) {
       success: 0,
       empty: 0,
       error: 0,
+      shortCircuit: 0,
       retriesTotal: 0,
       retryExhaustedTotal: 0,
+      circuitOpenTotal: 0,
+      circuitHalfOpenTotal: 0,
+      circuitCloseTotal: 0,
+      circuitShortCircuitTotal: 0,
       errorsByType: {},
       resultItemsTotal: 0,
       durationMsTotal: 0,
@@ -75,12 +80,30 @@ function recordSourceCall({
 
   if (status === 'success') source.success += 1;
   else if (status === 'empty') source.empty += 1;
-  else {
+  else if (status === 'short_circuit') {
+    source.shortCircuit += 1;
+  } else {
     source.error += 1;
 
     if (errorType) {
       source.errorsByType[errorType] = (source.errorsByType[errorType] || 0) + 1;
     }
+  }
+
+  touch();
+}
+
+function recordSourceCircuitEvent({ sourceName, eventType }) {
+  const source = ensureSource(sourceName);
+
+  if (eventType === 'open') {
+    source.circuitOpenTotal += 1;
+  } else if (eventType === 'half_open') {
+    source.circuitHalfOpenTotal += 1;
+  } else if (eventType === 'close') {
+    source.circuitCloseTotal += 1;
+  } else if (eventType === 'short_circuit') {
+    source.circuitShortCircuitTotal += 1;
   }
 
   touch();
@@ -125,5 +148,6 @@ module.exports = {
   recordRequestSuccess,
   recordRequestError,
   recordSourceCall,
+  recordSourceCircuitEvent,
   toSnapshot
 };
