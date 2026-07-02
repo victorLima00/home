@@ -4,6 +4,10 @@ const { buscarPromocoes } = require('./backend/services/promocoes-service');
 const { createLogger } = require('./backend/observability/logger');
 const { toSnapshot } = require('./backend/observability/promocoes-metrics');
 const {
+  buildHealthSnapshot,
+  buildReadinessReport
+} = require('./backend/observability/health-readiness');
+const {
   promotionSearchRequestSchema,
   promotionSearchResponseSchema,
   apiErrorSchema
@@ -97,7 +101,21 @@ app.post('/api/buscar-promocoes', async (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  return res.status(200).json(
+    buildHealthSnapshot({
+      runtime: 'local-server'
+    })
+  );
+});
+
+app.get('/ready', (req, res) => {
+  const readiness = buildReadinessReport({
+    runtime: 'local-server',
+    metricsSnapshot: toSnapshot()
+  });
+
+  const statusCode = readiness.status === 'unhealthy' ? 503 : 200;
+  return res.status(statusCode).json(readiness);
 });
 
 app.get('/metrics/promocoes', (req, res) => {

@@ -18,7 +18,8 @@ Objetivo:
 - Lote 10 (Observabilidade basica no fluxo de promocoes): concluido.
 - Lote 11 (Validacao de contrato automatizada em CI para promocoes): concluido.
 - Lote 12 (Endurecimento de erros e telemetria de adapters externos): concluido.
-- Proximo lote: Lote 13 (Endpoint consolidado de health/readiness para runtime local e serverless).
+- Lote 13 (Endpoint consolidado de health/readiness para runtime local e serverless): concluido.
+- Proximo lote: Lote 14 (Estrategia de retry/backoff por fonte com politicas configuraveis).
 
 ## Evidencias por lote
 
@@ -89,9 +90,9 @@ Status:
 
 ## Pendencias atuais
 
-1. Lote 13 - Endpoint consolidado de health/readiness para runtime local e serverless.
-2. Lote 14 - Estrategia de retry/backoff por fonte com politicas configuraveis.
-3. Lote 15 - Circuit breaker simples por fonte com degradacao controlada.
+1. Lote 14 - Estrategia de retry/backoff por fonte com politicas configuraveis.
+2. Lote 15 - Circuit breaker simples por fonte com degradacao controlada.
+3. Lote 16 - Endpoint de diagnostico resumido para analise operacional rapida.
 
 ## Riscos residuais
 
@@ -100,7 +101,7 @@ Status:
 
 ## Proxima acao recomendada
 
-- Iniciar Lote 13 consolidando health/readiness checks para app local e fluxo serverless.
+- Iniciar Lote 14 aplicando retry/backoff configuravel por fonte para reduzir erros transientes.
 
 ### Lote 4 - Contracts de promocoes com Zod
 
@@ -314,6 +315,35 @@ Validacoes executadas:
 - npm run lint
 - npm run typecheck
 - npm run test:promo-local
+
+Status:
+
+- Aprovado.
+
+### Lote 13 - Endpoint consolidado de health/readiness para runtime local e serverless
+
+Escopo:
+
+- Criar modulo compartilhado para snapshots de health e relatorio de readiness.
+- Expor `/health` e `/ready` no backend local.
+- Expor `/api/health` no serverless com suporte a `mode=health|ready`.
+
+Arquivos alterados:
+
+- backend/observability/health-readiness.js
+- backend/observability/health-readiness.test.js
+- backend.js
+- api/health.js
+- package.json
+
+Validacoes executadas:
+
+- npm run test:unit
+- npm run test:contracts
+- npm run lint
+- npm run typecheck
+- npm run test:promo-local
+- validacao manual dos endpoints `/health` e `/ready`
 
 Status:
 
