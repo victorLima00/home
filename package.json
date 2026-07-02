@@ -6,9 +6,10 @@
   "scripts": {
     "start": "node backend.js",
     "dev": "node backend.js",
-    "test": "npm run test:unit && npm run test:contracts",
+    "test": "npm run test:unit && npm run test:contracts && npm run test:integration",
     "test:unit": "node --test packages/domain/promocoes/index.test.js packages/application/promocoes/use-cases/buscar-promocoes.usecase.test.js backend/adapters/promotion-sources/source-error.test.js backend/adapters/promotion-sources/retry-backoff.test.js backend/adapters/promotion-sources/circuit-breaker.test.js backend/adapters/promotion-sources/timeout-budget.test.js backend/observability/health-readiness.test.js backend/observability/operational-diagnostics.test.js backend/observability/slo-promocoes.test.js",
     "test:contracts": "node --test packages/contracts/src/promocoes.contract.test.js tests/contracts/api-buscar-promocoes.contract.test.js",
+    "test:integration": "node --test tests/integration/api-operational.integration.test.js",
     "test:promo-local": "node scripts/test-promocoes-local.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
