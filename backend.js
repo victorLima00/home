@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const { buscarPromocoes } = require('./backend/services/promocoes-service');
+const { createLogger } = require('./backend/observability/logger');
+const { toSnapshot } = require('./backend/observability/promocoes-metrics');
 const {
   promotionSearchRequestSchema,
   promotionSearchResponseSchema,
@@ -17,6 +19,8 @@ function generateTraceId() {
   return `trace-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+const appLogger = createLogger({ component: 'backend-http' });
+
 function sendApiError(res, status, payload) {
   const parsedError = apiErrorSchema.safeParse(payload);
   const body = parsedError.success
@@ -32,49 +36,72 @@ function sendApiError(res, status, payload) {
 }
 
 app.post('/api/buscar-promocoes', async (req, res) => {
+  const traceId = generateTraceId();
+  const logger = appLogger.child({ traceId, route: '/api/buscar-promocoes' });
+
+  logger.info('request_received', {
+    method: req.method
+  });
+
   const parsedRequest = promotionSearchRequestSchema.safeParse(req.body || {});
   if (!parsedRequest.success) {
+    logger.warn('request_validation_failed', {
+      details: parsedRequest.error.flatten()
+    });
+
     return sendApiError(res, 400, {
       code: 'validation_error',
       message: 'Payload invalido para busca de promocoes',
       details: parsedRequest.error.flatten(),
-      traceId: generateTraceId()
+      traceId
     });
   }
 
   try {
     const { itemName, notes } = parsedRequest.data;
-    const results = await buscarPromocoes(itemName, notes);
+    const results = await buscarPromocoes(itemName, notes, { traceId });
     const parsedResponse = promotionSearchResponseSchema.safeParse(results);
 
     if (!parsedResponse.success) {
+      logger.warn('response_contract_failed', {
+        details: parsedResponse.error.flatten()
+      });
+
       return sendApiError(res, 502, {
         code: 'response_contract_error',
         message: 'Resposta fora do contrato de promocoes',
         details: parsedResponse.error.flatten(),
-        traceId: generateTraceId()
+        traceId
       });
     }
 
     const totalComResultado = results.sources.filter((source) => source.results.length > 0).length;
 
-    console.log(`🔍 Buscando: "${results.query}"`);
-    console.log(`✅ Resultados encontrados: ${totalComResultado} fontes`);
+    logger.info('request_succeeded', {
+      query: results.query,
+      totalSources: results.sources.length,
+      totalWithResults: totalComResultado
+    });
 
     return res.status(200).json(parsedResponse.data);
   } catch (error) {
-    console.error('Erro na busca:', error);
+    logger.error('request_failed', { error });
+
     return sendApiError(res, 500, {
       code: 'promotion_search_error',
       message: 'Erro ao buscar promocoes',
       details: { reason: error.message },
-      traceId: generateTraceId()
+      traceId
     });
   }
 });
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/metrics/promocoes', (req, res) => {
+  return res.status(200).json(toSnapshot());
 });
 
 app.listen(PORT, () => {

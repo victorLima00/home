@@ -1,4 +1,5 @@
 const { buscarPromocoes } = require('../backend/services/promocoes-service');
+const { createLogger } = require('../backend/observability/logger');
 const {
   promotionSearchRequestSchema,
   promotionSearchResponseSchema,
@@ -8,6 +9,8 @@ const {
 function generateTraceId() {
   return `trace-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
+
+const appLogger = createLogger({ component: 'api-buscar-promocoes' });
 
 function sendApiError(res, status, payload) {
   const parsedError = apiErrorSchema.safeParse(payload);
@@ -30,6 +33,9 @@ function setCorsHeaders(res) {
 }
 
 module.exports = async (req, res) => {
+  const traceId = generateTraceId();
+  const logger = appLogger.child({ traceId, route: '/api/buscar-promocoes' });
+
   setCorsHeaders(res);
 
   if (req.method === 'OPTIONS') {
@@ -37,46 +43,63 @@ module.exports = async (req, res) => {
   }
 
   if (req.method !== 'POST') {
+    logger.warn('method_not_allowed', { method: req.method });
+
     return sendApiError(res, 405, {
       code: 'method_not_allowed',
       message: 'Metodo nao permitido',
       details: { allowedMethods: ['POST', 'OPTIONS'] },
-      traceId: generateTraceId()
+      traceId
     });
   }
 
   const parsedRequest = promotionSearchRequestSchema.safeParse(req.body || {});
   if (!parsedRequest.success) {
+    logger.warn('request_validation_failed', {
+      details: parsedRequest.error.flatten()
+    });
+
     return sendApiError(res, 400, {
       code: 'validation_error',
       message: 'Payload invalido para busca de promocoes',
       details: parsedRequest.error.flatten(),
-      traceId: generateTraceId()
+      traceId
     });
   }
 
   try {
     const { itemName, notes } = parsedRequest.data;
-    const results = await buscarPromocoes(itemName, notes);
+    const results = await buscarPromocoes(itemName, notes, { traceId });
     const parsedResponse = promotionSearchResponseSchema.safeParse(results);
 
     if (!parsedResponse.success) {
+      logger.warn('response_contract_failed', {
+        details: parsedResponse.error.flatten()
+      });
+
       return sendApiError(res, 502, {
         code: 'response_contract_error',
         message: 'Resposta fora do contrato de promocoes',
         details: parsedResponse.error.flatten(),
-        traceId: generateTraceId()
+        traceId
       });
     }
 
+    logger.info('request_succeeded', {
+      query: results.query,
+      totalSources: results.sources.length,
+      totalWithResults: results.sources.filter((source) => source.results.length > 0).length
+    });
+
     return res.status(200).json(parsedResponse.data);
   } catch (error) {
-    console.error('Erro na busca:', error);
+    logger.error('request_failed', { error });
+
     return sendApiError(res, 500, {
       code: 'promotion_search_error',
       message: 'Erro ao buscar promocoes',
       details: { reason: error.message },
-      traceId: generateTraceId()
+      traceId
     });
   }
 };

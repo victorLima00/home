@@ -15,7 +15,8 @@ Objetivo:
 - Lote 7 (Caso de uso buscarPromocoes na camada application): concluido.
 - Lote 8 (Adaptar adapters e composition root para o caso de uso): concluido.
 - Lote 9 (Testes unitarios do core domain + application): concluido.
-- Proximo lote: Lote 10 (Observabilidade basica no fluxo de promocoes).
+- Lote 10 (Observabilidade basica no fluxo de promocoes): concluido.
+- Proximo lote: Lote 11 (Validacao de contrato automatizada em CI para promocoes).
 
 ## Evidencias por lote
 
@@ -86,9 +87,9 @@ Status:
 
 ## Pendencias atuais
 
-1. Lote 10 - Observabilidade basica no fluxo de promocoes.
-2. Lote 11 - Validacao de contrato automatizada em CI para promocoes.
-3. Lote 12 - Endurecimento de erros e telemetria de adapters externos.
+1. Lote 11 - Validacao de contrato automatizada em CI para promocoes.
+2. Lote 12 - Endurecimento de erros e telemetria de adapters externos.
+3. Lote 13 - Endpoint consolidado de health/readiness para runtime local e serverless.
 
 ## Riscos residuais
 
@@ -97,7 +98,7 @@ Status:
 
 ## Proxima acao recomendada
 
-- Iniciar Lote 10 adicionando logs estruturados e metricas basicas no fluxo de promocoes.
+- Iniciar Lote 11 adicionando validacao automatizada de contrato em pipeline e checks dedicados.
 
 ### Lote 4 - Contracts de promocoes com Zod
 
@@ -231,6 +232,33 @@ Validacoes executadas:
 - npm run lint
 - npm run typecheck
 - npm run test:promo-local
+
+Status:
+
+- Aprovado.
+
+### Lote 10 - Observabilidade basica no fluxo de promocoes
+
+Escopo:
+
+- Adicionar logger estruturado, telemetria por fonte e metricas in-memory para o fluxo de promocoes.
+
+Arquivos alterados:
+
+- backend/observability/logger.js
+- backend/observability/promocoes-metrics.js
+- backend/composition/promocoes.composition.js
+- backend/services/promocoes-service.js
+- backend.js
+- api/buscar-promocoes.js
+
+Validacoes executadas:
+
+- npm run lint
+- npm run typecheck
+- npm run test:unit
+- npm run test:promo-local
+- validacao manual do endpoint local `/metrics/promocoes`
 
 Status:
 
