@@ -1,6 +1,10 @@
 const state = {
   startedAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
+  history: {
+    requestOutcomes: [],
+    budgetExceededTimestamps: []
+  },
   requests: {
     total: 0,
     success: 0,
@@ -11,6 +15,31 @@ const state = {
   },
   sourceCalls: {}
 };
+
+const HISTORY_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+function toEpochMs(isoValue) {
+  const parsed = Date.parse(isoValue);
+  return Number.isFinite(parsed) ? parsed : Date.now();
+}
+
+function pruneHistory(nowMs = Date.now()) {
+  const cutoff = nowMs - HISTORY_MAX_AGE_MS;
+  state.history.requestOutcomes = state.history.requestOutcomes.filter(
+    (entry) => entry.ts >= cutoff
+  );
+  state.history.budgetExceededTimestamps = state.history.budgetExceededTimestamps.filter(
+    (entryTs) => entryTs >= cutoff
+  );
+}
+
+function toP95(values) {
+  if (!values.length) return 0;
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const index = Math.max(0, Math.ceil(sorted.length * 0.95) - 1);
+  return sorted[index];
+}
 
 function touch() {
   state.updatedAt = new Date().toISOString();
@@ -46,21 +75,33 @@ function recordRequestStart() {
 }
 
 function recordRequestSuccess(durationMs) {
+  const nowMs = Date.now();
+  pruneHistory(nowMs);
+
   state.requests.success += 1;
   state.requests.durationMsTotal += durationMs;
   state.requests.durationMsMax = Math.max(state.requests.durationMsMax, durationMs);
+  state.history.requestOutcomes.push({ ts: nowMs, ok: true, durationMs });
   touch();
 }
 
 function recordRequestError(durationMs) {
+  const nowMs = Date.now();
+  pruneHistory(nowMs);
+
   state.requests.error += 1;
   state.requests.durationMsTotal += durationMs;
   state.requests.durationMsMax = Math.max(state.requests.durationMsMax, durationMs);
+  state.history.requestOutcomes.push({ ts: nowMs, ok: false, durationMs });
   touch();
 }
 
 function recordRequestBudgetExceeded() {
+  const nowMs = Date.now();
+  pruneHistory(nowMs);
+
   state.requests.budgetExceeded += 1;
+  state.history.budgetExceededTimestamps.push(nowMs);
   touch();
 }
 
@@ -149,6 +190,44 @@ function toSnapshot() {
   };
 }
 
+function toSloWindowSnapshot({ windowMs, now = () => Date.now() }) {
+  const nowMs = now();
+  pruneHistory(nowMs);
+
+  const safeWindowMs = Number.isFinite(windowMs) && windowMs > 0 ? windowMs : 60 * 60 * 1000;
+  const windowStartMs = nowMs - safeWindowMs;
+
+  const outcomesInWindow = state.history.requestOutcomes.filter(
+    (entry) => entry.ts >= windowStartMs
+  );
+  const budgetExceededInWindow = state.history.budgetExceededTimestamps.filter(
+    (entryTs) => entryTs >= windowStartMs
+  );
+
+  const requestTotal = outcomesInWindow.length;
+  const requestErrors = outcomesInWindow.filter((entry) => !entry.ok).length;
+  const durations = outcomesInWindow
+    .map((entry) => entry.durationMs)
+    .filter((value) => Number.isFinite(value));
+  const avgMs = durations.length
+    ? Number((durations.reduce((acc, value) => acc + value, 0) / durations.length).toFixed(2))
+    : 0;
+  const maxMs = durations.length ? Math.max(...durations) : 0;
+  const p95Ms = durations.length ? toP95(durations) : 0;
+
+  return {
+    startedAt: new Date(windowStartMs).toISOString(),
+    endedAt: new Date(nowMs).toISOString(),
+    requestTotal,
+    requestErrors,
+    budgetExceeded: budgetExceededInWindow.length,
+    avgMs,
+    maxMs,
+    p95Ms,
+    uptimeSec: Number(((nowMs - toEpochMs(state.startedAt)) / 1000).toFixed(2))
+  };
+}
+
 module.exports = {
   recordRequestStart,
   recordRequestSuccess,
@@ -156,5 +235,6 @@ module.exports = {
   recordRequestBudgetExceeded,
   recordSourceCall,
   recordSourceCircuitEvent,
-  toSnapshot
+  toSnapshot,
+  toSloWindowSnapshot
 };

@@ -2,8 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const { buscarPromocoes } = require('./backend/services/promocoes-service');
 const { createLogger } = require('./backend/observability/logger');
-const { toSnapshot } = require('./backend/observability/promocoes-metrics');
+const { toSnapshot, toSloWindowSnapshot } = require('./backend/observability/promocoes-metrics');
 const { buildOperationalDiagnostics } = require('./backend/observability/operational-diagnostics');
+const {
+  resolveSloPolicyFromEnv,
+  buildPromotionsSloReport
+} = require('./backend/observability/slo-promocoes');
 const {
   buildHealthSnapshot,
   buildReadinessReport
@@ -25,6 +29,7 @@ function generateTraceId() {
 }
 
 const appLogger = createLogger({ component: 'backend-http' });
+const sloPolicy = resolveSloPolicyFromEnv(process.env);
 
 function sendApiError(res, status, payload) {
   const parsedError = apiErrorSchema.safeParse(payload);
@@ -130,6 +135,18 @@ app.get('/ops/promocoes/summary', (req, res) => {
   });
 
   return res.status(200).json(diagnostics);
+});
+
+app.get('/ops/promocoes/slo', (req, res) => {
+  const windowSnapshot = toSloWindowSnapshot({ windowMs: sloPolicy.windowMs });
+  const report = buildPromotionsSloReport({
+    runtime: 'local-server',
+    policy: sloPolicy,
+    windowSnapshot
+  });
+
+  const statusCode = report.status === 'unhealthy' ? 503 : 200;
+  return res.status(statusCode).json(report);
 });
 
 app.listen(PORT, () => {
