@@ -5,9 +5,13 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
 
 jobs:
   quality-gates:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
 
     steps:
@@ -34,3 +38,35 @@ jobs:
 
       - name: Contract Tests
         run: npm run test:contracts
+
+      - name: Integration Tests
+        run: npm run test:integration
+
+  nightly-regression:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit Tests
+        run: npm run test:unit
+
+      - name: Contract Tests
+        run: npm run test:contracts
+
+      - name: Integration Tests
+        run: npm run test:integration
+
+      - name: Regression Tests
+        run: npm run test:regression
