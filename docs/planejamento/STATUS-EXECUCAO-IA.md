@@ -14,7 +14,8 @@ Objetivo:
 - Lote 6 (Extracao de dominio de promocoes para camada domain): concluido.
 - Lote 7 (Caso de uso buscarPromocoes na camada application): concluido.
 - Lote 8 (Adaptar adapters e composition root para o caso de uso): concluido.
-- Proximo lote: Lote 9 (Testes unitarios do core domain + application).
+- Lote 9 (Testes unitarios do core domain + application): concluido.
+- Proximo lote: Lote 10 (Observabilidade basica no fluxo de promocoes).
 
 ## Evidencias por lote
 
@@ -85,9 +86,9 @@ Status:
 
 ## Pendencias atuais
 
-1. Lote 9 - Testes unitarios do core (domain + application).
-2. Lote 10 - Observabilidade basica no fluxo de promocoes.
-3. Lote 11 - Validacao de contrato automatizada em CI para promocoes.
+1. Lote 10 - Observabilidade basica no fluxo de promocoes.
+2. Lote 11 - Validacao de contrato automatizada em CI para promocoes.
+3. Lote 12 - Endurecimento de erros e telemetria de adapters externos.
 
 ## Riscos residuais
 
@@ -96,7 +97,7 @@ Status:
 
 ## Proxima acao recomendada
 
-- Iniciar Lote 9 implementando testes unitarios para `packages/domain` e `packages/application`.
+- Iniciar Lote 10 adicionando logs estruturados e metricas basicas no fluxo de promocoes.
 
 ### Lote 4 - Contracts de promocoes com Zod
 
@@ -204,6 +205,29 @@ Arquivos alterados:
 
 Validacoes executadas:
 
+- npm run lint
+- npm run typecheck
+- npm run test:promo-local
+
+Status:
+
+- Aprovado.
+
+### Lote 9 - Testes unitarios do core (domain + application)
+
+Escopo:
+
+- Cobrir regras de dominio e caso de uso de promocoes com testes unitarios usando `node:test`.
+
+Arquivos alterados:
+
+- packages/domain/promocoes/index.test.js
+- packages/application/promocoes/use-cases/buscar-promocoes.usecase.test.js
+- package.json
+
+Validacoes executadas:
+
+- npm run test:unit
 - npm run lint
 - npm run typecheck
 - npm run test:promo-local

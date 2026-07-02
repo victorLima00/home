@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node backend.js",
     "dev": "node backend.js",
+    "test": "npm run test:unit",
+    "test:unit": "node --test packages/domain/promocoes/index.test.js packages/application/promocoes/use-cases/buscar-promocoes.usecase.test.js",
     "test:promo-local": "node scripts/test-promocoes-local.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
