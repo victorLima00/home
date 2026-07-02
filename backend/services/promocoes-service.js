@@ -1,6 +1,6 @@
 const fetchHttp = require('node-fetch');
 const cheerio = require('cheerio');
-const { construirConsultas, consolidarSources } = require('../../packages/domain/promocoes');
+const { createBuscarPromocoesUseCase } = require('../../packages/application/promocoes');
 
 const ZOOM_BASE_URL = 'https://www.zoom.com.br';
 const KABUM_BASE_URL = 'https://www.kabum.com.br';
@@ -121,59 +121,21 @@ async function buscarKaBuM(query) {
   }
 }
 
-async function buscarComFallback(fonte, consultas) {
-  const attempts = [];
-  let ultimoErro = null;
-
-  for (const consulta of consultas) {
-    const resultado = await fonte(consulta);
-    const total = Array.isArray(resultado.results) ? resultado.results.length : 0;
-
-    attempts.push({
-      query: consulta,
-      total,
-      error: resultado.error || null
-    });
-
-    if (total > 0) {
-      return {
-        ...resultado,
-        status: 'success',
-        searchUsed: consulta,
-        attempts
-      };
+const buscarPromocoesUseCase = createBuscarPromocoesUseCase({
+  sources: [
+    {
+      name: 'Zoom',
+      search: buscarZoom
+    },
+    {
+      name: 'KaBuM',
+      search: buscarKaBuM
     }
-
-    if (resultado.error) {
-      ultimoErro = resultado.error;
-    }
-  }
-
-  return {
-    source: attempts[0] ? undefined : 'Fonte',
-    results: [],
-    status: ultimoErro ? 'error' : 'empty',
-    error: ultimoErro,
-    searchUsed: consultas[0] || '',
-    attempts
-  };
-}
+  ]
+});
 
 async function buscarPromocoes(itemName, notes) {
-  const consultas = construirConsultas(itemName, notes);
-  const queryPrincipal = consultas[0] || itemName;
-
-  const fontes = [buscarZoom, buscarKaBuM];
-  const resultados = await Promise.all(fontes.map((fonte) => buscarComFallback(fonte, consultas)));
-
-  const sources = consolidarSources(itemName, consultas, resultados);
-
-  return {
-    query: queryPrincipal,
-    consultas,
-    timestamp: new Date().toISOString(),
-    sources
-  };
+  return buscarPromocoesUseCase.execute({ itemName, notes });
 }
 
 module.exports = {

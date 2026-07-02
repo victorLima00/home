@@ -12,7 +12,8 @@ Objetivo:
 - Lote 4 (Contracts de promocoes com Zod): concluido.
 - Lote 5 (Validacao de request/response na API de promocoes): concluido.
 - Lote 6 (Extracao de dominio de promocoes para camada domain): concluido.
-- Proximo lote: Lote 7 (Caso de uso buscarPromocoes na camada application).
+- Lote 7 (Caso de uso buscarPromocoes na camada application): concluido.
+- Proximo lote: Lote 8 (Adaptar adapters e composition root para o caso de uso).
 
 ## Evidencias por lote
 
@@ -83,9 +84,9 @@ Status:
 
 ## Pendencias atuais
 
-1. Lote 7 - Criar caso de uso buscarPromocoes com porta de fonte.
-2. Lote 8 - Adaptar adapters e composition root para o caso de uso.
-3. Lote 9 - Testes unitarios do core (domain + application).
+1. Lote 8 - Adaptar adapters e composition root para o caso de uso.
+2. Lote 9 - Testes unitarios do core (domain + application).
+3. Lote 10 - Observabilidade basica no fluxo de promocoes.
 
 ## Riscos residuais
 
@@ -94,7 +95,7 @@ Status:
 
 ## Proxima acao recomendada
 
-- Iniciar Lote 7 criando `packages/application/promocoes` com caso de uso e porta para fontes.
+- Iniciar Lote 8 refinando composition root e separando adapters de fonte em modulo dedicado.
 
 ### Lote 4 - Contracts de promocoes com Zod
 
@@ -151,6 +152,29 @@ Escopo:
 Arquivos alterados:
 
 - packages/domain/promocoes/index.js
+- backend/services/promocoes-service.js
+
+Validacoes executadas:
+
+- npm run lint
+- npm run typecheck
+- npm run test:promo-local
+
+Status:
+
+- Aprovado.
+
+### Lote 7 - Caso de uso buscarPromocoes na camada application
+
+Escopo:
+
+- Criar camada `packages/application` com caso de uso e porta explicita para fontes de promocoes.
+
+Arquivos alterados:
+
+- packages/application/promocoes/ports/promotion-source.port.js
+- packages/application/promocoes/use-cases/buscar-promocoes.usecase.js
+- packages/application/promocoes/index.js
 - backend/services/promocoes-service.js
 
 Validacoes executadas:
