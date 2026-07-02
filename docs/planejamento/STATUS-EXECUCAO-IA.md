@@ -19,7 +19,8 @@ Objetivo:
 - Lote 11 (Validacao de contrato automatizada em CI para promocoes): concluido.
 - Lote 12 (Endurecimento de erros e telemetria de adapters externos): concluido.
 - Lote 13 (Endpoint consolidado de health/readiness para runtime local e serverless): concluido.
-- Proximo lote: Lote 14 (Estrategia de retry/backoff por fonte com politicas configuraveis).
+- Lote 14 (Estrategia de retry/backoff por fonte com politicas configuraveis): concluido.
+- Proximo lote: Lote 15 (Circuit breaker simples por fonte com degradacao controlada).
 
 ## Evidencias por lote
 
@@ -90,9 +91,9 @@ Status:
 
 ## Pendencias atuais
 
-1. Lote 14 - Estrategia de retry/backoff por fonte com politicas configuraveis.
-2. Lote 15 - Circuit breaker simples por fonte com degradacao controlada.
-3. Lote 16 - Endpoint de diagnostico resumido para analise operacional rapida.
+1. Lote 15 - Circuit breaker simples por fonte com degradacao controlada.
+2. Lote 16 - Endpoint de diagnostico resumido para analise operacional rapida.
+3. Lote 17 - Politica de timeout por fonte e orcamento de latencia por request.
 
 ## Riscos residuais
 
@@ -101,7 +102,7 @@ Status:
 
 ## Proxima acao recomendada
 
-- Iniciar Lote 14 aplicando retry/backoff configuravel por fonte para reduzir erros transientes.
+- Iniciar Lote 15 implementando circuit breaker por fonte com janela curta e reabertura controlada.
 
 ### Lote 4 - Contracts de promocoes com Zod
 
@@ -344,6 +345,34 @@ Validacoes executadas:
 - npm run typecheck
 - npm run test:promo-local
 - validacao manual dos endpoints `/health` e `/ready`
+
+Status:
+
+- Aprovado.
+
+### Lote 14 - Estrategia de retry/backoff por fonte com politicas configuraveis
+
+Escopo:
+
+- Implementar retry/backoff exponencial com jitter para falhas transientes de fonte externa.
+- Tornar politica configuravel por variaveis de ambiente.
+- Enriquecer telemetria com contagem de retries e retries esgotados.
+
+Arquivos alterados:
+
+- backend/adapters/promotion-sources/retry-backoff.js
+- backend/adapters/promotion-sources/retry-backoff.test.js
+- backend/composition/promocoes.composition.js
+- backend/observability/promocoes-metrics.js
+- package.json
+
+Validacoes executadas:
+
+- npm run test:unit
+- npm run test:contracts
+- npm run lint
+- npm run typecheck
+- npm run test:promo-local
 
 Status:
 

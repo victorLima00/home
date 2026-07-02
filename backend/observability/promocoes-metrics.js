@@ -22,6 +22,8 @@ function ensureSource(sourceName) {
       success: 0,
       empty: 0,
       error: 0,
+      retriesTotal: 0,
+      retryExhaustedTotal: 0,
       errorsByType: {},
       resultItemsTotal: 0,
       durationMsTotal: 0,
@@ -51,10 +53,22 @@ function recordRequestError(durationMs) {
   touch();
 }
 
-function recordSourceCall({ sourceName, status, durationMs, resultCount, errorType = null }) {
+function recordSourceCall({
+  sourceName,
+  status,
+  durationMs,
+  resultCount,
+  errorType = null,
+  retryCount = 0,
+  retryExhausted = false
+}) {
   const source = ensureSource(sourceName);
 
   source.total += 1;
+  source.retriesTotal += Math.max(0, retryCount);
+  if (retryExhausted) {
+    source.retryExhaustedTotal += 1;
+  }
   source.durationMsTotal += durationMs;
   source.durationMsMax = Math.max(source.durationMsMax, durationMs);
   source.resultItemsTotal += resultCount;
