@@ -55,16 +55,19 @@ Objetivo:
 - Lote 14 (Estrategia de retry/backoff por fonte com politicas configuraveis): concluido.
 - Lote 15 (Circuit breaker simples por fonte com degradacao controlada): concluido.
 
-### 🔄 ESTÁGIO 3 - Modernização do Frontend (EM PROGRESSO)
+### ✅ ESTÁGIO 3 - Modernização do Frontend (COMPLETO)
 
-- Lote 16 (Setup do Estágio 3: criar apps/web com Next.js, estrutura base, roteamento): concluido.
-- Lote 17 (Migrar dashboard principal com componentes reutilizáveis): em progresso.
+- Lote 16 (Setup do Estágio 3: criar apps/web com Next.js, estrutura base, roteamento): ✅ concluido.
+- Lote 17 (Migrar dashboard principal com componentes reutilizáveis): ✅ concluido.
+- Lote 18 (Migrar room pages com navegação dinâmica): ✅ concluido.
+- Lote 19 (Migrar formulários com validação Zod e hook useItems): ✅ concluido.
+- Lote 20 (Acessibilidade base e checklist de paridade funcional): ✅ concluido.
 
 ---
 
 ## Proximo lote
 
-**Lote 17: Estágio 3 - Dashboard Principal com Componentes**
+**Lote 21: Estágio 4 - Continuação de Data & Resilience**
 
 ## Evidencias por lote
 
