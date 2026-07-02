@@ -16,7 +16,8 @@ Objetivo:
 - Lote 8 (Adaptar adapters e composition root para o caso de uso): concluido.
 - Lote 9 (Testes unitarios do core domain + application): concluido.
 - Lote 10 (Observabilidade basica no fluxo de promocoes): concluido.
-- Proximo lote: Lote 11 (Validacao de contrato automatizada em CI para promocoes).
+- Lote 11 (Validacao de contrato automatizada em CI para promocoes): concluido.
+- Proximo lote: Lote 12 (Endurecimento de erros e telemetria de adapters externos).
 
 ## Evidencias por lote
 
@@ -87,9 +88,9 @@ Status:
 
 ## Pendencias atuais
 
-1. Lote 11 - Validacao de contrato automatizada em CI para promocoes.
-2. Lote 12 - Endurecimento de erros e telemetria de adapters externos.
-3. Lote 13 - Endpoint consolidado de health/readiness para runtime local e serverless.
+1. Lote 12 - Endurecimento de erros e telemetria de adapters externos.
+2. Lote 13 - Endpoint consolidado de health/readiness para runtime local e serverless.
+3. Lote 14 - Estrategia de retry/backoff por fonte com politicas configuraveis.
 
 ## Riscos residuais
 
@@ -98,7 +99,7 @@ Status:
 
 ## Proxima acao recomendada
 
-- Iniciar Lote 11 adicionando validacao automatizada de contrato em pipeline e checks dedicados.
+- Iniciar Lote 12 reforcando classificacao de erros por fonte e telemetria de falhas externas.
 
 ### Lote 4 - Contracts de promocoes com Zod
 
@@ -259,6 +260,31 @@ Validacoes executadas:
 - npm run test:unit
 - npm run test:promo-local
 - validacao manual do endpoint local `/metrics/promocoes`
+
+Status:
+
+- Aprovado.
+
+### Lote 11 - Validacao de contrato automatizada em CI para promocoes
+
+Escopo:
+
+- Criar suite de contrato para schemas de promocoes e validar comportamento contratual do endpoint serverless em cenarios validos e invalidos.
+- Incluir gate dedicado de contrato no pipeline CI.
+
+Arquivos alterados:
+
+- packages/contracts/src/promocoes.contract.test.js
+- tests/contracts/api-buscar-promocoes.contract.test.js
+- package.json
+- .github/workflows/ci.yml
+
+Validacoes executadas:
+
+- npm run test:contracts
+- npm run test:unit
+- npm run lint
+- npm run typecheck
 
 Status:
 
