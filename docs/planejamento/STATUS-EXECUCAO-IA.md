@@ -11,7 +11,8 @@ Objetivo:
 - Lote 3 (CI minima): concluido.
 - Lote 4 (Contracts de promocoes com Zod): concluido.
 - Lote 5 (Validacao de request/response na API de promocoes): concluido.
-- Proximo lote: Lote 6 (Extracao de dominio de promocoes para camada domain).
+- Lote 6 (Extracao de dominio de promocoes para camada domain): concluido.
+- Proximo lote: Lote 7 (Caso de uso buscarPromocoes na camada application).
 
 ## Evidencias por lote
 
@@ -82,9 +83,9 @@ Status:
 
 ## Pendencias atuais
 
-1. Lote 6 - Extrair dominio de promocoes para camada domain.
-2. Lote 7 - Criar caso de uso buscarPromocoes com porta de fonte.
-3. Lote 8 - Adaptar adapters e composition root para o caso de uso.
+1. Lote 7 - Criar caso de uso buscarPromocoes com porta de fonte.
+2. Lote 8 - Adaptar adapters e composition root para o caso de uso.
+3. Lote 9 - Testes unitarios do core (domain + application).
 
 ## Riscos residuais
 
@@ -93,7 +94,7 @@ Status:
 
 ## Proxima acao recomendada
 
-- Iniciar Lote 6 extraindo regras de promocoes para `packages/domain` sem dependencia de Express.
+- Iniciar Lote 7 criando `packages/application/promocoes` com caso de uso e porta para fontes.
 
 ### Lote 4 - Contracts de promocoes com Zod
 
@@ -136,6 +137,27 @@ Validacoes executadas:
 - npm run typecheck
 - npm run test:promo-local
 - teste deterministico de payload invalido no endpoint serverless
+
+Status:
+
+- Aprovado.
+
+### Lote 6 - Extracao de dominio de promocoes
+
+Escopo:
+
+- Mover regras puras de negocio de promocoes para camada `packages/domain`.
+
+Arquivos alterados:
+
+- packages/domain/promocoes/index.js
+- backend/services/promocoes-service.js
+
+Validacoes executadas:
+
+- npm run lint
+- npm run typecheck
+- npm run test:promo-local
 
 Status:
 
