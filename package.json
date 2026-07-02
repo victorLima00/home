@@ -11,6 +11,7 @@
     "test:contracts": "node --test packages/contracts/src/promocoes.contract.test.js tests/contracts/api-buscar-promocoes.contract.test.js",
     "test:integration": "node --test tests/integration/api-operational.integration.test.js",
     "test:regression": "node --test tests/regression/critical-flows.regression.test.js",
+    "test:e2e:web": "npm --prefix apps/web run test:e2e",
     "test:promo-local": "node scripts/test-promocoes-local.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",

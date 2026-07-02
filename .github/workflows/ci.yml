@@ -27,6 +27,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install web dependencies
+        run: npm --prefix apps/web ci
+
+      - name: Install Playwright browser
+        run: npm --prefix apps/web exec playwright install chromium
+
       - name: Lint
         run: npm run lint
 
@@ -70,3 +76,6 @@ jobs:
 
       - name: Regression Tests
         run: npm run test:regression
+
+      - name: Frontend E2E (critical flows)
+        run: npm run test:e2e:web

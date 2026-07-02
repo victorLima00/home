@@ -1,3 +1,6 @@
+"use client";
+
+import { useMemo, useState } from 'react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 
@@ -11,13 +14,30 @@ interface Item {
 }
 
 export default function ItemsPage() {
-  const items: Item[] = [
+  const [items, setItems] = useState<Item[]>([
     { id: '1', name: 'Espelho do banheiro', section: 'Reforma', room: 'Banheiro', priority: 'Urgente', purchased: false },
     { id: '2', name: 'Closet quarto', section: 'Móveis Planejados', room: 'Quarto Principal', priority: 'Urgente', purchased: false },
     { id: '3', name: 'Sofá cinza', section: 'Móveis Planejados', room: 'Sala', priority: 'Importante', purchased: true },
     { id: '4', name: 'Cortinas sala', section: 'Itens Gerais da Casa', room: 'Sala', priority: 'Normal', purchased: false },
     { id: '5', name: 'Luminária escritório', section: 'Itens Gerais da Casa', room: 'Escritório', priority: 'Normal', purchased: true },
-  ];
+  ]);
+
+  const totalComprados = useMemo(() => items.filter((item) => item.purchased).length, [items]);
+
+  function togglePurchased(itemId: string) {
+    setItems((currentItems) =>
+      currentItems.map((item) => {
+        if (item.id !== itemId) {
+          return item;
+        }
+
+        return {
+          ...item,
+          purchased: !item.purchased
+        };
+      })
+    );
+  }
 
   const priorityColors: Record<string, string> = {
     'Urgente': '#dc3545',
@@ -31,6 +51,9 @@ export default function ItemsPage() {
         <h3 style={{ marginTop: 0 }}>Itens</h3>
         <p style={{ color: '#666' }}>
           Gerencie todos os itens da sua reforma
+        </p>
+        <p style={{ color: '#444', fontSize: '0.9rem' }} data-testid="itens-resumo">
+          {totalComprados} de {items.length} itens marcados como comprados
         </p>
       </div>
 
@@ -67,9 +90,11 @@ export default function ItemsPage() {
             <option>Móveis Planejados</option>
             <option>Itens Gerais da Casa</option>
           </select>
-          <Button variant="primary" size="sm">
-            + Adicionar Item
-          </Button>
+          <a href="/dashboard/items/new" style={{ textDecoration: 'none' }}>
+            <Button variant="primary" size="sm" type="button" aria-label="Ir para criar novo item">
+              + Adicionar Item
+            </Button>
+          </a>
         </div>
       </Card>
 
@@ -109,7 +134,13 @@ export default function ItemsPage() {
                       gap: '0.5rem'
                     }}
                   >
-                    <input type="checkbox" checked={item.purchased} readOnly />
+                    <input
+                      type="checkbox"
+                      checked={item.purchased}
+                      onChange={() => togglePurchased(item.id)}
+                      aria-label={`Marcar item ${item.name} como comprado`}
+                      data-testid={`item-checkbox-${item.id}`}
+                    />
                     <span
                       style={{
                         textDecoration: item.purchased ? 'line-through' : 'none',

@@ -30,7 +30,12 @@ export default function NewItemPage() {
         />
       ) : (
         <Card>
-          <Button variant="primary" onClick={() => setShowForm(true)}>
+          <Button
+            variant="primary"
+            onClick={() => setShowForm(true)}
+            type="button"
+            data-testid="abrir-form-novo-item"
+          >
             ➕ Criar Novo Item
           </Button>
         </Card>
