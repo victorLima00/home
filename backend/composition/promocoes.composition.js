@@ -9,6 +9,12 @@ const {
   resolveCircuitBreakerPolicyFromEnv,
   createCircuitBreaker
 } = require('../adapters/promotion-sources/circuit-breaker');
+const {
+  resolveTimeoutBudgetPolicyFromEnv,
+  resolveSourceTimeoutMs,
+  withTimeout
+} = require('../adapters/promotion-sources/timeout-budget');
+const { normalizeSourceFailure } = require('../adapters/promotion-sources/source-error');
 const { createLogger } = require('../observability/logger');
 const {
   recordSourceCall,
@@ -18,14 +24,20 @@ const {
 const baseLogger = createLogger({ component: 'promocoes-composition' });
 const retryPolicy = resolveRetryPolicyFromEnv(process.env);
 const circuitBreakerPolicy = resolveCircuitBreakerPolicyFromEnv(process.env);
+const timeoutBudgetPolicy = resolveTimeoutBudgetPolicyFromEnv(process.env);
 
 baseLogger.info('promotion_retry_policy_loaded', retryPolicy);
 baseLogger.info('promotion_circuit_breaker_policy_loaded', circuitBreakerPolicy);
+baseLogger.info('promotion_timeout_budget_policy_loaded', timeoutBudgetPolicy);
 
 function instrumentSource(source) {
   const circuitBreaker = createCircuitBreaker({
     sourceName: source.name,
     policy: circuitBreakerPolicy
+  });
+  const sourceTimeoutMs = resolveSourceTimeoutMs({
+    sourceName: source.name,
+    policy: timeoutBudgetPolicy
   });
 
   return {
@@ -41,7 +53,15 @@ function instrumentSource(source) {
           async () => {
             retryOutcome = await executeWithRetry({
               policy: retryPolicy,
-              operation: async () => source.search(query),
+              operation: async () => {
+                try {
+                  return await withTimeout(() => source.search(query), sourceTimeoutMs, {
+                    timeoutMessage: `Source ${source.name} timed out after ${sourceTimeoutMs}ms`
+                  });
+                } catch (error) {
+                  return normalizeSourceFailure(source.name, error);
+                }
+              },
               onRetry: ({ retryNumber, delayMs, result: retryResult }) => {
                 retryEvents.push({
                   retryNumber,
@@ -55,6 +75,7 @@ function instrumentSource(source) {
                   query,
                   retryNumber,
                   delayMs,
+                  sourceTimeoutMs,
                   errorType: retryResult?.errorType || null,
                   errorCode: retryResult?.errorCode || null
                 });
@@ -137,6 +158,7 @@ function instrumentSource(source) {
           shortCircuited,
           retryExhausted,
           retryEvents,
+          sourceTimeoutMs,
           retryable: result?.retryable ?? null,
           httpStatus: result?.httpStatus ?? null
         });

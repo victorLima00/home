@@ -5,6 +5,7 @@ const state = {
     total: 0,
     success: 0,
     error: 0,
+    budgetExceeded: 0,
     durationMsTotal: 0,
     durationMsMax: 0
   },
@@ -55,6 +56,11 @@ function recordRequestError(durationMs) {
   state.requests.error += 1;
   state.requests.durationMsTotal += durationMs;
   state.requests.durationMsMax = Math.max(state.requests.durationMsMax, durationMs);
+  touch();
+}
+
+function recordRequestBudgetExceeded() {
+  state.requests.budgetExceeded += 1;
   touch();
 }
 
@@ -147,6 +153,7 @@ module.exports = {
   recordRequestStart,
   recordRequestSuccess,
   recordRequestError,
+  recordRequestBudgetExceeded,
   recordSourceCall,
   recordSourceCircuitEvent,
   toSnapshot
