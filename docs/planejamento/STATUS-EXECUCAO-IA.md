@@ -67,7 +67,7 @@ Objetivo:
 
 ## Proximo lote
 
-**Lote 24: Estágio 5 - Testes em Camadas (início)**
+**Lote 27: Estágio 5 - E2E dos fluxos críticos do frontend**
 
 ## Evidencias por lote
 
@@ -154,7 +154,10 @@ Status:
 
 ### Estágio 5 - Testes em Camadas
 
-9. Lote 24+ - Pirâmide de testes integrados, E2E e regressão automatizada.
+9. ✅ Lote 24 - Testes de integração para endpoints operacionais (serverless handlers).
+10. ✅ Lote 25 - Suíte de regressão para fluxos críticos de promoções.
+11. ✅ Lote 26 - Pipeline CI em camadas com job noturno de regressão.
+12. Lote 27 - E2E dos fluxos críticos do frontend (criar item, editar status, navegar por cômodo).
 
 ### Estágio 7 - Segurança e Compliance
 
@@ -167,7 +170,7 @@ Status:
 
 ## Proxima acao recomendada
 
-- Iniciar Lote 24 com pirâmide de testes em camadas (integração de backend e smoke de fluxos críticos).
+- Iniciar Lote 27 com E2E de frontend para fechar a matriz mínima do Estágio 5.
 
 ### Lote 4 - Contracts de promocoes com Zod
 
