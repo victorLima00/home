@@ -308,6 +308,316 @@ function getItemById(id) {
     return APP_DATA.items.find(item => item.id === id);
 }
 
+const COMODOS_META = [
+    { id: 'cozinha', icon: '👨‍🍳', nome: 'Cozinha Integrada', descricao: 'Integra cozinha, sala e lavanderia no mesmo fluxo.' },
+    { id: 'sala', icon: '🛋️', nome: 'Sala', descricao: 'Conforto, convivência e eletrônicos.' },
+    { id: 'quarto', icon: '🛏️', nome: 'Quarto Principal', descricao: 'Descanso, organização e iluminação.' },
+    { id: 'banheiro', icon: '🚿', nome: 'Banheiro', descricao: 'Acabamentos, funcionalidade e bem-estar.' },
+    { id: 'escritorio', icon: '💼', nome: 'Escritório', descricao: 'Produtividade e ergonomia do ambiente.' },
+    { id: 'sacada', icon: '🌳', nome: 'Sacada', descricao: 'Lazer, ventilação e área externa.' },
+    { id: 'lavanderia', icon: '🧺', nome: 'Lavanderia', descricao: 'Rotina prática de limpeza e organização.' }
+];
+
+const TOPICOS_META = [
+    { id: 'reforma', titulo: '🔨 Reforma', modelLabel: 'Estrutura e obra' },
+    { id: 'moveis', titulo: '🛋️ Planejados', modelLabel: 'Layout e marcenaria' },
+    { id: 'itens', titulo: '📦 Itens', modelLabel: 'Objetos e utilidades' }
+];
+
+let selectedRoomPage = 'cozinha';
+let currentFilter = 'all';
+let currentView = 'roompages';
+const roomThreeScenes = [];
+let roomThreeAnimationId = null;
+
+function isValidComodo(comodoId) {
+    return COMODOS_META.some((comodo) => comodo.id === comodoId);
+}
+
+function getUrlState() {
+    const params = new URLSearchParams(window.location.search);
+    const comodo = params.get('comodo');
+    const view = params.get('view');
+
+    return {
+        comodo: isValidComodo(comodo) ? comodo : null,
+        view: ['roompages', 'sections', 'comodos', 'prioridade'].includes(view) ? view : null
+    };
+}
+
+function syncUrlState() {
+    const params = new URLSearchParams(window.location.search);
+    params.set('view', currentView);
+
+    if (currentView === 'roompages') {
+        params.set('comodo', selectedRoomPage);
+    } else {
+        params.delete('comodo');
+    }
+
+    const nextQuery = params.toString();
+    const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}`;
+    window.history.replaceState({}, '', nextUrl);
+}
+
+function setActiveView(view) {
+    currentView = view;
+
+    document.querySelectorAll('.view-btn').forEach((button) => {
+        button.classList.toggle('active', button.dataset.view === view);
+    });
+
+    document.querySelectorAll('.view-container').forEach((container) => {
+        container.style.display = 'none';
+    });
+
+    if (view === 'roompages') {
+        document.getElementById('roomPagesView').style.display = 'flex';
+    } else if (view === 'sections') {
+        document.getElementById('sectionsView').style.display = 'flex';
+    } else if (view === 'comodos') {
+        document.getElementById('comodosView').style.display = 'flex';
+    } else if (view === 'prioridade') {
+        document.getElementById('prioridadeView').style.display = 'flex';
+    }
+
+    if (view !== 'roompages') {
+        disposeRoomThreeScenes();
+    }
+
+    syncUrlState();
+}
+
+function disposeRoomThreeScenes() {
+    while (roomThreeScenes.length > 0) {
+        const sceneRef = roomThreeScenes.pop();
+
+        if (sceneRef.renderer) {
+            sceneRef.renderer.dispose();
+            if (sceneRef.renderer.domElement && sceneRef.renderer.domElement.parentNode) {
+                sceneRef.renderer.domElement.parentNode.removeChild(sceneRef.renderer.domElement);
+            }
+        }
+
+        if (sceneRef.geometry) sceneRef.geometry.dispose();
+        if (sceneRef.material) sceneRef.material.dispose();
+        if (sceneRef.floorGeometry) sceneRef.floorGeometry.dispose();
+        if (sceneRef.floorMaterial) sceneRef.floorMaterial.dispose();
+    }
+
+    if (roomThreeAnimationId) {
+        cancelAnimationFrame(roomThreeAnimationId);
+        roomThreeAnimationId = null;
+    }
+}
+
+function getTopicColor(topicId) {
+    if (topicId === 'reforma') return 0xef4444;
+    if (topicId === 'moveis') return 0xf59e0b;
+    return 0x22c55e;
+}
+
+function initRoomThreeScenes() {
+    disposeRoomThreeScenes();
+
+    if (!window.THREE) {
+        return;
+    }
+
+    const canvases = document.querySelectorAll('.room-3d-canvas');
+
+    canvases.forEach((container) => {
+        const topicId = container.dataset.topic || 'itens';
+        const width = 160;
+        const height = 110;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
+        camera.position.set(0, 1.6, 3.3);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        container.innerHTML = '';
+        container.appendChild(renderer.domElement);
+
+        const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambient);
+
+        const dir = new THREE.DirectionalLight(0xffffff, 1);
+        dir.position.set(1.8, 2.2, 1.2);
+        scene.add(dir);
+
+        const floorGeometry = new THREE.BoxGeometry(3.2, 0.2, 2.2);
+        const floorMaterial = new THREE.MeshStandardMaterial({
+            color: getTopicColor(topicId),
+            roughness: 0.45,
+            metalness: 0.1
+        });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.position.y = -0.7;
+        scene.add(floor);
+
+        const geometry = new THREE.BoxGeometry(1.1, 0.9, 0.9);
+        const material = new THREE.MeshStandardMaterial({
+            color: 0xf8fafc,
+            roughness: 0.25,
+            metalness: 0.05
+        });
+        const cube = new THREE.Mesh(geometry, material);
+        cube.rotation.set(0.25, 0.55, 0.05);
+        scene.add(cube);
+
+        roomThreeScenes.push({
+            renderer,
+            scene,
+            camera,
+            cube,
+            geometry,
+            material,
+            floorGeometry,
+            floorMaterial
+        });
+    });
+
+    if (roomThreeScenes.length > 0) {
+        const animate = () => {
+            roomThreeAnimationId = requestAnimationFrame(animate);
+            roomThreeScenes.forEach((ref) => {
+                ref.cube.rotation.y += 0.01;
+                ref.renderer.render(ref.scene, ref.camera);
+            });
+        };
+
+        animate();
+    }
+}
+
+function getComodoMeta(comodoId) {
+    return COMODOS_META.find((comodo) => comodo.id === comodoId) || COMODOS_META[0];
+}
+
+function buildRoom3D(topicId, label) {
+    return `
+        <div class="room-3d-wrap">
+            <div class="room-3d-canvas" data-topic="${topicId}">
+                <div class="room-3d-model" data-topic="${topicId}">
+                    <div class="room-3d-floor"></div>
+                    <div class="room-3d-wall-left"></div>
+                    <div class="room-3d-wall-right"></div>
+                    <div class="room-3d-core"></div>
+                </div>
+            </div>
+            <div class="room-3d-label">${label}</div>
+        </div>
+    `;
+}
+
+function renderRoomPagesNav(currentFilter = 'all') {
+    const nav = document.getElementById('roomPagesNav');
+    if (!nav) return;
+
+    nav.innerHTML = '';
+
+    COMODOS_META.forEach((comodo) => {
+        const items = APP_DATA.items.filter((item) =>
+            item.comodo === comodo.id &&
+            filterItems(currentFilter).includes(item)
+        );
+        const completed = items.filter((item) => item.completed).length;
+
+        const button = document.createElement('button');
+        button.className = `room-page-btn ${selectedRoomPage === comodo.id ? 'active' : ''}`;
+        button.dataset.comodo = comodo.id;
+        button.innerHTML = `
+            <strong>${comodo.icon} ${comodo.nome}</strong>
+            <span>${completed}/${items.length} concluídos</span>
+        `;
+
+        button.addEventListener('click', () => {
+            selectedRoomPage = comodo.id;
+            renderRoomPagesView(currentFilter);
+            syncUrlState();
+        });
+
+        nav.appendChild(button);
+    });
+}
+
+function renderRoomPagesView(currentFilter = 'all') {
+    const content = document.getElementById('roomPageContent');
+    if (!content) return;
+
+    const comodo = getComodoMeta(selectedRoomPage);
+    const allRoomItems = APP_DATA.items.filter((item) =>
+        item.comodo === selectedRoomPage &&
+        filterItems(currentFilter).includes(item)
+    );
+    const totalDone = allRoomItems.filter((item) => item.completed).length;
+
+    renderRoomPagesNav(currentFilter);
+
+    let html = `
+        <section class="room-page-hero">
+            <div>
+                <h3>${comodo.icon} ${comodo.nome}</h3>
+                <p>${comodo.descricao}</p>
+            </div>
+            <span class="room-page-total">${totalDone}/${allRoomItems.length} concluídos</span>
+        </section>
+    `;
+
+    TOPICOS_META.forEach((topico) => {
+        const topicItems = APP_DATA.items.filter((item) =>
+            item.comodo === selectedRoomPage &&
+            item.section === topico.id &&
+            filterItems(currentFilter).includes(item)
+        );
+
+        const done = topicItems.filter((item) => item.completed).length;
+
+        html += `
+            <section class="room-topic-card">
+                <div class="room-topic-header">
+                    <h4>${topico.titulo}</h4>
+                    <span class="room-topic-stats">${done}/${topicItems.length}</span>
+                </div>
+                <div class="room-topic-body">
+                    ${buildRoom3D(topico.id, topico.modelLabel)}
+                    <ul class="items-list room-items-list" id="room-${selectedRoomPage}-${topico.id}"></ul>
+                </div>
+            </section>
+        `;
+    });
+
+    content.innerHTML = html;
+
+    TOPICOS_META.forEach((topico) => {
+        const ul = document.getElementById(`room-${selectedRoomPage}-${topico.id}`);
+        if (!ul) return;
+
+        const topicItems = APP_DATA.items.filter((item) =>
+            item.comodo === selectedRoomPage &&
+            item.section === topico.id &&
+            filterItems(currentFilter).includes(item)
+        );
+
+        ul.innerHTML = '';
+
+        if (topicItems.length === 0) {
+            ul.innerHTML = '<div class="empty-state"><p>Nenhum item neste tópico para este cômodo</p></div>';
+        } else {
+            topicItems.forEach((item) => {
+                ul.appendChild(createItemElement(item, currentFilter));
+            });
+        }
+    });
+
+    if (currentView === 'roompages') {
+        initRoomThreeScenes();
+    }
+}
+
 // Filter items
 function filterItems(filterType) {
     if (filterType === 'all') return APP_DATA.items;
@@ -494,10 +804,12 @@ function renderPriorityView(currentFilter = 'all') {
 }
 
 // Render all views
-function renderAll(currentFilter = 'all') {
-    renderSectionsView(currentFilter);
-    renderComodosView(currentFilter);
-    renderPriorityView(currentFilter);
+function renderAll(filterType = currentFilter) {
+    currentFilter = filterType;
+    renderRoomPagesView(filterType);
+    renderSectionsView(filterType);
+    renderComodosView(filterType);
+    renderPriorityView(filterType);
 }
 
 // Update statistics
@@ -593,25 +905,15 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const filter = btn.dataset.filter;
+        currentFilter = filter;
         renderAll(filter);
     });
 });
 
 document.querySelectorAll('.view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
         const view = btn.dataset.view;
-        document.querySelectorAll('.view-container').forEach(v => v.style.display = 'none');
-        
-        if (view === 'sections') {
-            document.getElementById('sectionsView').style.display = 'flex';
-        } else if (view === 'comodos') {
-            document.getElementById('comodosView').style.display = 'flex';
-        } else if (view === 'prioridade') {
-            document.getElementById('prioridadeView').style.display = 'flex';
-        }
+        setActiveView(view);
     });
 });
 
@@ -1027,6 +1329,25 @@ document.head.appendChild(style);
 // ==================== INITIALIZE ====================
 
 document.addEventListener('DOMContentLoaded', () => {
+    const state = getUrlState();
+    if (state.comodo) {
+        selectedRoomPage = state.comodo;
+    }
+
+    setActiveView(state.view || 'roompages');
+    renderAll(currentFilter);
+
     console.log('App inicializada, aguardando conexão com Firestore...');
     // Firestore will initialize automatically when ready
+});
+
+window.addEventListener('popstate', () => {
+    const state = getUrlState();
+
+    if (state.comodo) {
+        selectedRoomPage = state.comodo;
+    }
+
+    setActiveView(state.view || 'roompages');
+    renderAll(currentFilter);
 });

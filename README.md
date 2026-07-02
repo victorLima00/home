@@ -5,9 +5,26 @@ Um projeto HTML/CSS/JavaScript para organizar a reforma e mobiliário de um apar
 ## 📋 Funcionalidades
 
 ### 📊 Visualizações
+- **Por Cômodo (Páginas)**: cada cômodo funciona como uma página dedicada, com cards por tópico
 - **Por Seção**: Organizada por Reforma, Móveis Planejados e Itens Gerais
 - **Por Cômodo**: Agrupa todos os itens de cada cômodo
 - **Por Prioridade**: Mostra itens organizados por urgência
+
+### 🧩 Nova Estrutura de Apresentação
+- Cada cômodo é uma página navegável no topo da área principal
+- Dentro da página do cômodo, os tópicos ficam separados em cards:
+   - 🔨 Reforma
+   - 🛋️ Planejados
+   - 📦 Itens
+- Cada card possui um modelo 3D real (Three.js) para facilitar leitura e contexto
+
+### 🔗 Rotas por Cômodo
+- A navegação por cômodo atualiza a URL com query string
+- Exemplos:
+   - `?view=roompages&comodo=cozinha`
+   - `?view=roompages&comodo=quarto`
+   - `?view=sections`
+- Ao abrir o link, o app restaura automaticamente a view e o cômodo selecionado
 
 ### 🏘️ Cômodos
 - Cozinha Integrada (com Lavanderia e Sala)
@@ -71,7 +88,8 @@ Use os botões de filtro superior para ver:
 - Apenas comprados
 
 ### Trocar Visualização
-Use os botões de visualização (📋 📊 ⚡) para:
+Use os botões de visualização (🏡 📋 📊 ⚡) para:
+- 🏡 **Por Cômodo (Páginas)**: navegação por cômodo com cards de tópico e visual 3D
 - 📋 **Por Seção**: Ver organizado por Reforma, Móveis e Itens
 - 🏘️ **Por Cômodo**: Ver tudo de cada cômodo junto
 - ⚡ **Por Prioridade**: Ver itens organizados por urgência

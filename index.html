@@ -31,7 +31,8 @@
                 <button class="filter-btn" data-filter="comprado">✅ Comprado</button>
             </div>
             <div class="view-group">
-                <button class="view-btn active" data-view="sections" title="Visualizar por Seção">📋</button>
+                <button class="view-btn active" data-view="roompages" title="Visualizar por Cômodo (Páginas)">🏡</button>
+                <button class="view-btn" data-view="sections" title="Visualizar por Seção">📋</button>
                 <button class="view-btn" data-view="comodos" title="Visualizar por Cômodo">🏘️</button>
                 <button class="view-btn" data-view="prioridade" title="Visualizar por Prioridade">⚡</button>
             </div>
@@ -39,8 +40,18 @@
 
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Room Pages View -->
+            <div class="view-container room-pages-view" id="roomPagesView">
+                <div class="room-pages-header">
+                    <h2>🏡 Cômodos do Apartamento</h2>
+                    <p>Cada cômodo funciona como uma página com cards por tópico e visual 3D dedicado.</p>
+                </div>
+                <div class="room-pages-nav" id="roomPagesNav"></div>
+                <div class="room-page-content" id="roomPageContent"></div>
+            </div>
+
             <!-- Sections View -->
-            <div class="view-container" id="sectionsView">
+            <div class="view-container" id="sectionsView" style="display: none;">
                 <!-- Reforma -->
                 <section class="section" id="reforma">
                     <div class="section-header">
@@ -405,6 +416,7 @@
     <!-- Firebase SDK (Compat - Traditional Scripts) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://unpkg.com/three@0.166.1/build/three.min.js"></script>
     
     <script src="script.js"></script>
 </body>
