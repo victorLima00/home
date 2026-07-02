@@ -13,7 +13,8 @@ Objetivo:
 - Lote 5 (Validacao de request/response na API de promocoes): concluido.
 - Lote 6 (Extracao de dominio de promocoes para camada domain): concluido.
 - Lote 7 (Caso de uso buscarPromocoes na camada application): concluido.
-- Proximo lote: Lote 8 (Adaptar adapters e composition root para o caso de uso).
+- Lote 8 (Adaptar adapters e composition root para o caso de uso): concluido.
+- Proximo lote: Lote 9 (Testes unitarios do core domain + application).
 
 ## Evidencias por lote
 
@@ -84,9 +85,9 @@ Status:
 
 ## Pendencias atuais
 
-1. Lote 8 - Adaptar adapters e composition root para o caso de uso.
-2. Lote 9 - Testes unitarios do core (domain + application).
-3. Lote 10 - Observabilidade basica no fluxo de promocoes.
+1. Lote 9 - Testes unitarios do core (domain + application).
+2. Lote 10 - Observabilidade basica no fluxo de promocoes.
+3. Lote 11 - Validacao de contrato automatizada em CI para promocoes.
 
 ## Riscos residuais
 
@@ -95,7 +96,7 @@ Status:
 
 ## Proxima acao recomendada
 
-- Iniciar Lote 8 refinando composition root e separando adapters de fonte em modulo dedicado.
+- Iniciar Lote 9 implementando testes unitarios para `packages/domain` e `packages/application`.
 
 ### Lote 4 - Contracts de promocoes com Zod
 
@@ -175,6 +176,30 @@ Arquivos alterados:
 - packages/application/promocoes/ports/promotion-source.port.js
 - packages/application/promocoes/use-cases/buscar-promocoes.usecase.js
 - packages/application/promocoes/index.js
+- backend/services/promocoes-service.js
+
+Validacoes executadas:
+
+- npm run lint
+- npm run typecheck
+- npm run test:promo-local
+
+Status:
+
+- Aprovado.
+
+### Lote 8 - Adapters e composition root para promocoes
+
+Escopo:
+
+- Separar adapters de fontes em modulos dedicados e explicitar composition root do fluxo de promocoes.
+
+Arquivos alterados:
+
+- backend/adapters/promotion-sources/source-utils.js
+- backend/adapters/promotion-sources/zoom-source.js
+- backend/adapters/promotion-sources/kabum-source.js
+- backend/composition/promocoes.composition.js
 - backend/services/promocoes-service.js
 
 Validacoes executadas:
