@@ -67,7 +67,7 @@ Objetivo:
 
 ## Proximo lote
 
-**Lote 27: Estágio 5 - E2E dos fluxos críticos do frontend**
+**Lote 28: Estágio 5 - fortalecimento de cobertura e gates de cobertura**
 
 ## Evidencias por lote
 
@@ -157,7 +157,7 @@ Status:
 9. ✅ Lote 24 - Testes de integração para endpoints operacionais (serverless handlers).
 10. ✅ Lote 25 - Suíte de regressão para fluxos críticos de promoções.
 11. ✅ Lote 26 - Pipeline CI em camadas com job noturno de regressão.
-12. Lote 27 - E2E dos fluxos críticos do frontend (criar item, editar status, navegar por cômodo).
+12. ✅ Lote 27 - E2E dos fluxos críticos do frontend (criar item, editar status, navegar por cômodo).
 
 ### Estágio 7 - Segurança e Compliance
 
@@ -170,7 +170,7 @@ Status:
 
 ## Proxima acao recomendada
 
-- Iniciar Lote 27 com E2E de frontend para fechar a matriz mínima do Estágio 5.
+- Iniciar Lote 28 para elevar cobertura dos módulos de observabilidade e consolidar gate de cobertura no CI.
 
 ### Lote 4 - Contracts de promocoes com Zod
 
