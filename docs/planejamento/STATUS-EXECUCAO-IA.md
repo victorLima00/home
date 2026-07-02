@@ -67,7 +67,7 @@ Objetivo:
 
 ## Proximo lote
 
-**Lote 21: Estágio 4 - Continuação de Data & Resilience**
+**Lote 24: Estágio 5 - Testes em Camadas (início)**
 
 ## Evidencias por lote
 
@@ -141,16 +141,16 @@ Status:
 ### Estágio 3 - Modernização do Frontend
 
 1. ✅ Lote 16 - Setup: criar apps/web, Next.js, roteamento base, estrutura de pastas, API client, schemas.
-2. Lote 17 - Migrar dashboard principal com componentes reutilizáveis (cards, stats, layout).
-3. Lote 18 - Migrar room pages e estrutura de navegação com sidebar dinâmica.
-4. Lote 19 - Migrar formulários de itens e integrar API client tipado com Firestore.
-5. Lote 20 - Acessibilidade base (aria labels, foco, contraste) e validações de paridade funcional.
+2. ✅ Lote 17 - Dashboard principal com componentes reutilizáveis (cards, stats, layout).
+3. ✅ Lote 18 - Room pages e estrutura de navegação com sidebar dinâmica.
+4. ✅ Lote 19 - Formulários de itens com validação Zod e integração de API client.
+5. ✅ Lote 20 - Acessibilidade base (aria labels, foco, contraste) e validações de paridade funcional.
 
-### Estágio 4 - Continuação (após Estágio 3)
+### Estágio 4 - Continuação (concluído após Estágio 3)
 
-6. Lote 21 - Endpoint de diagnóstico operacional resumido para análise operacional rápida.
-7. Lote 22 - Política de timeout por fonte e orçamento de latência por request.
-8. Lote 23 - SLO básico de promoções com budget de erro por janela.
+6. ✅ Lote 21 - Endpoint de diagnóstico operacional resumido para análise operacional rápida.
+7. ✅ Lote 22 - Política de timeout por fonte e orçamento de latência por request.
+8. ✅ Lote 23 - SLO básico de promoções com budget de erro por janela.
 
 ### Estágio 5 - Testes em Camadas
 
@@ -167,7 +167,7 @@ Status:
 
 ## Proxima acao recomendada
 
-- Iniciar Lote 16 implementando endpoint de diagnostico operacional resumido para suporte.
+- Iniciar Lote 24 com pirâmide de testes em camadas (integração de backend e smoke de fluxos críticos).
 
 ### Lote 4 - Contracts de promocoes com Zod
 
