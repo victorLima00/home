@@ -17,7 +17,8 @@ Objetivo:
 - Lote 9 (Testes unitarios do core domain + application): concluido.
 - Lote 10 (Observabilidade basica no fluxo de promocoes): concluido.
 - Lote 11 (Validacao de contrato automatizada em CI para promocoes): concluido.
-- Proximo lote: Lote 12 (Endurecimento de erros e telemetria de adapters externos).
+- Lote 12 (Endurecimento de erros e telemetria de adapters externos): concluido.
+- Proximo lote: Lote 13 (Endpoint consolidado de health/readiness para runtime local e serverless).
 
 ## Evidencias por lote
 
@@ -88,9 +89,9 @@ Status:
 
 ## Pendencias atuais
 
-1. Lote 12 - Endurecimento de erros e telemetria de adapters externos.
-2. Lote 13 - Endpoint consolidado de health/readiness para runtime local e serverless.
-3. Lote 14 - Estrategia de retry/backoff por fonte com politicas configuraveis.
+1. Lote 13 - Endpoint consolidado de health/readiness para runtime local e serverless.
+2. Lote 14 - Estrategia de retry/backoff por fonte com politicas configuraveis.
+3. Lote 15 - Circuit breaker simples por fonte com degradacao controlada.
 
 ## Riscos residuais
 
@@ -99,7 +100,7 @@ Status:
 
 ## Proxima acao recomendada
 
-- Iniciar Lote 12 reforcando classificacao de erros por fonte e telemetria de falhas externas.
+- Iniciar Lote 13 consolidando health/readiness checks para app local e fluxo serverless.
 
 ### Lote 4 - Contracts de promocoes com Zod
 
@@ -285,6 +286,34 @@ Validacoes executadas:
 - npm run test:unit
 - npm run lint
 - npm run typecheck
+
+Status:
+
+- Aprovado.
+
+### Lote 12 - Endurecimento de erros e telemetria de adapters externos
+
+Escopo:
+
+- Classificar erros de fontes externas por categoria e enriquecer telemetria/logs com tipo e codigo de erro.
+
+Arquivos alterados:
+
+- backend/adapters/promotion-sources/source-error.js
+- backend/adapters/promotion-sources/source-error.test.js
+- backend/adapters/promotion-sources/zoom-source.js
+- backend/adapters/promotion-sources/kabum-source.js
+- backend/composition/promocoes.composition.js
+- backend/observability/promocoes-metrics.js
+- package.json
+
+Validacoes executadas:
+
+- npm run test:unit
+- npm run test:contracts
+- npm run lint
+- npm run typecheck
+- npm run test:promo-local
 
 Status:
 

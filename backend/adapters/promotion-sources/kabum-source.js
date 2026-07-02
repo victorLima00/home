@@ -1,6 +1,7 @@
 const fetchHttp = require('node-fetch');
 const cheerio = require('cheerio');
 const { limparTexto, normalizarPreco, extrairLinkAbsoluto } = require('./source-utils');
+const { createHttpStatusError, normalizeSourceFailure } = require('./source-error');
 
 const KABUM_BASE_URL = 'https://www.kabum.com.br';
 
@@ -14,7 +15,7 @@ async function buscarKaBuM(query) {
       }
     });
 
-    if (!response.ok) throw new Error(`KaBuM error (${response.status})`);
+    if (!response.ok) throw createHttpStatusError('KaBuM', response.status);
 
     const html = await response.text();
     const $ = cheerio.load(html);
@@ -47,7 +48,7 @@ async function buscarKaBuM(query) {
       results
     };
   } catch (error) {
-    return { source: 'KaBuM', results: [], error: error.message };
+    return normalizeSourceFailure('KaBuM', error);
   }
 }
 

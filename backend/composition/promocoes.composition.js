@@ -17,12 +17,15 @@ function instrumentSource(source) {
         const durationMs = Date.now() - startedAt;
         const resultCount = Array.isArray(result?.results) ? result.results.length : 0;
         const status = result?.error ? 'error' : resultCount > 0 ? 'success' : 'empty';
+        const errorType = result?.errorType || null;
+        const errorCode = result?.errorCode || null;
 
         recordSourceCall({
           sourceName: source.name,
           status,
           durationMs,
-          resultCount
+          resultCount,
+          errorType
         });
 
         baseLogger.info('promotion_source_call', {
@@ -31,7 +34,11 @@ function instrumentSource(source) {
           status,
           durationMs,
           resultCount,
-          hasError: Boolean(result?.error)
+          hasError: Boolean(result?.error),
+          errorType,
+          errorCode,
+          retryable: result?.retryable ?? null,
+          httpStatus: result?.httpStatus ?? null
         });
 
         return result;

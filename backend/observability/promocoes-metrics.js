@@ -22,6 +22,7 @@ function ensureSource(sourceName) {
       success: 0,
       empty: 0,
       error: 0,
+      errorsByType: {},
       resultItemsTotal: 0,
       durationMsTotal: 0,
       durationMsMax: 0
@@ -50,7 +51,7 @@ function recordRequestError(durationMs) {
   touch();
 }
 
-function recordSourceCall({ sourceName, status, durationMs, resultCount }) {
+function recordSourceCall({ sourceName, status, durationMs, resultCount, errorType = null }) {
   const source = ensureSource(sourceName);
 
   source.total += 1;
@@ -60,7 +61,13 @@ function recordSourceCall({ sourceName, status, durationMs, resultCount }) {
 
   if (status === 'success') source.success += 1;
   else if (status === 'empty') source.empty += 1;
-  else source.error += 1;
+  else {
+    source.error += 1;
+
+    if (errorType) {
+      source.errorsByType[errorType] = (source.errorsByType[errorType] || 0) + 1;
+    }
+  }
 
   touch();
 }

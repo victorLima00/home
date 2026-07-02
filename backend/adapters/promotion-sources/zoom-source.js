@@ -1,6 +1,7 @@
 const fetchHttp = require('node-fetch');
 const cheerio = require('cheerio');
 const { limparTexto, normalizarPreco, extrairLinkAbsoluto } = require('./source-utils');
+const { createHttpStatusError, normalizeSourceFailure } = require('./source-error');
 
 const ZOOM_BASE_URL = 'https://www.zoom.com.br';
 
@@ -14,7 +15,7 @@ async function buscarZoom(query) {
       }
     });
 
-    if (!response.ok) throw new Error(`Zoom error (${response.status})`);
+    if (!response.ok) throw createHttpStatusError('Zoom', response.status);
 
     const html = await response.text();
     const $ = cheerio.load(html);
@@ -47,7 +48,7 @@ async function buscarZoom(query) {
       results
     };
   } catch (error) {
-    return { source: 'Zoom', results: [], error: error.message };
+    return normalizeSourceFailure('Zoom', error);
   }
 }
 
