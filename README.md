@@ -10,6 +10,15 @@ Um projeto HTML/CSS/JavaScript para organizar a reforma e mobiliário de um apar
 - **Por Cômodo**: Agrupa todos os itens de cada cômodo
 - **Por Prioridade**: Mostra itens organizados por urgência
 
+### 🧠 Busca e Produtividade
+- Busca textual global no topo: nome, nota, cômodo, tópico, prioridade e responsável
+- Limpeza rápida da busca com botão `✕`
+- Filtros de prioridade/estado combinados com busca textual
+
+### ➕ Novo Fluxo de Adição
+- O botão **+ Novo Item** abre um drawer lateral moderno
+- O formulário de adicionar item sai do layout fixo e vira painel contextual
+
 ### 🧩 Nova Estrutura de Apresentação
 - Cada cômodo é uma página navegável no topo da área principal
 - Dentro da página do cômodo, os tópicos ficam separados em cards:
@@ -25,6 +34,21 @@ Um projeto HTML/CSS/JavaScript para organizar a reforma e mobiliário de um apar
    - `?view=roompages&comodo=quarto`
    - `?view=sections`
 - Ao abrir o link, o app restaura automaticamente a view e o cômodo selecionado
+
+## 🏗️ Arquitetura
+
+### Frontend (camada de apresentação)
+- [index.html](index.html): shell da aplicação e slots de views
+- [styles.css](styles.css): tema visual moderno + layout responsivo + cards
+- [frontend/meta.js](frontend/meta.js): metadados de UI (cômodos e tópicos)
+- [script.js](script.js): estado, roteamento por query string, renderização das views, integração Firestore e ações de UI
+
+### Backend (camada de domínio/API)
+- [backend/services/promocoes-service.js](backend/services/promocoes-service.js): lógica de domínio da busca de promoções
+- [backend.js](backend.js): servidor local (Express) e adaptador HTTP
+- [api/buscar-promocoes.js](api/buscar-promocoes.js): adaptador serverless para Vercel
+
+Esse desenho separa frontend e backend no mesmo repositório HOME, mantendo deploy simples no Vercel.
 
 ### 🏘️ Cômodos
 - Cozinha Integrada (com Lavanderia e Sala)

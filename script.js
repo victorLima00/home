@@ -301,32 +301,37 @@ function loadDataFromLocalStorage() {
 }
 
 // Render something immediately so mobile browsers don't sit on a blank screen
-loadDataFromLocalStorage();
+// Intencionalmente carregado no DOMContentLoaded para evitar TDZ das constantes de UI.
 
 // Get item by ID
 function getItemById(id) {
     return APP_DATA.items.find(item => item.id === id);
 }
 
-const COMODOS_META = [
-    { id: 'cozinha', icon: '👨‍🍳', nome: 'Cozinha Integrada', descricao: 'Integra cozinha, sala e lavanderia no mesmo fluxo.' },
-    { id: 'sala', icon: '🛋️', nome: 'Sala', descricao: 'Conforto, convivência e eletrônicos.' },
-    { id: 'quarto', icon: '🛏️', nome: 'Quarto Principal', descricao: 'Descanso, organização e iluminação.' },
-    { id: 'banheiro', icon: '🚿', nome: 'Banheiro', descricao: 'Acabamentos, funcionalidade e bem-estar.' },
-    { id: 'escritorio', icon: '💼', nome: 'Escritório', descricao: 'Produtividade e ergonomia do ambiente.' },
-    { id: 'sacada', icon: '🌳', nome: 'Sacada', descricao: 'Lazer, ventilação e área externa.' },
-    { id: 'lavanderia', icon: '🧺', nome: 'Lavanderia', descricao: 'Rotina prática de limpeza e organização.' }
-];
+const COMODOS_META = (window.FRONTEND_META && Array.isArray(window.FRONTEND_META.comodos) && window.FRONTEND_META.comodos.length > 0)
+    ? window.FRONTEND_META.comodos
+    : [
+        { id: 'cozinha', icon: '👨‍🍳', nome: 'Cozinha Integrada', descricao: 'Integra cozinha, sala e lavanderia no mesmo fluxo.' },
+        { id: 'sala', icon: '🛋️', nome: 'Sala', descricao: 'Conforto, convivência e eletrônicos.' },
+        { id: 'quarto', icon: '🛏️', nome: 'Quarto Principal', descricao: 'Descanso, organização e iluminação.' },
+        { id: 'banheiro', icon: '🚿', nome: 'Banheiro', descricao: 'Acabamentos, funcionalidade e bem-estar.' },
+        { id: 'escritorio', icon: '💼', nome: 'Escritório', descricao: 'Produtividade e ergonomia do ambiente.' },
+        { id: 'sacada', icon: '🌳', nome: 'Sacada', descricao: 'Lazer, ventilação e área externa.' },
+        { id: 'lavanderia', icon: '🧺', nome: 'Lavanderia', descricao: 'Rotina prática de limpeza e organização.' }
+    ];
 
-const TOPICOS_META = [
-    { id: 'reforma', titulo: '🔨 Reforma', modelLabel: 'Estrutura e obra' },
-    { id: 'moveis', titulo: '🛋️ Planejados', modelLabel: 'Layout e marcenaria' },
-    { id: 'itens', titulo: '📦 Itens', modelLabel: 'Objetos e utilidades' }
-];
+const TOPICOS_META = (window.FRONTEND_META && Array.isArray(window.FRONTEND_META.topicos) && window.FRONTEND_META.topicos.length > 0)
+    ? window.FRONTEND_META.topicos
+    : [
+        { id: 'reforma', titulo: '🔨 Reforma', modelLabel: 'Estrutura e obra' },
+        { id: 'moveis', titulo: '🛋️ Planejados', modelLabel: 'Layout e marcenaria' },
+        { id: 'itens', titulo: '📦 Itens', modelLabel: 'Objetos e utilidades' }
+    ];
 
 let selectedRoomPage = 'cozinha';
 let currentFilter = 'all';
 let currentView = 'roompages';
+let currentSearchTerm = '';
 const roomThreeScenes = [];
 let roomThreeAnimationId = null;
 
@@ -526,21 +531,23 @@ function renderRoomPagesNav(currentFilter = 'all') {
         );
         const completed = items.filter((item) => item.completed).length;
 
-        const button = document.createElement('button');
-        button.className = `room-page-btn ${selectedRoomPage === comodo.id ? 'active' : ''}`;
-        button.dataset.comodo = comodo.id;
-        button.innerHTML = `
+        const link = document.createElement('a');
+        link.className = `room-page-btn ${selectedRoomPage === comodo.id ? 'active' : ''}`;
+        link.dataset.comodo = comodo.id;
+        link.href = `?view=roompages&comodo=${encodeURIComponent(comodo.id)}`;
+        link.innerHTML = `
             <strong>${comodo.icon} ${comodo.nome}</strong>
             <span>${completed}/${items.length} concluídos</span>
         `;
 
-        button.addEventListener('click', () => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
             selectedRoomPage = comodo.id;
             renderRoomPagesView(currentFilter);
             syncUrlState();
         });
 
-        nav.appendChild(button);
+        nav.appendChild(link);
     });
 }
 
@@ -620,10 +627,29 @@ function renderRoomPagesView(currentFilter = 'all') {
 
 // Filter items
 function filterItems(filterType) {
-    if (filterType === 'all') return APP_DATA.items;
-    if (filterType === 'comprado') return APP_DATA.items.filter(i => i.completed);
-    if (filterType === 'pendente') return APP_DATA.items.filter(i => !i.completed);
-    return APP_DATA.items.filter(i => i.priority === filterType);
+    let filtered = APP_DATA.items;
+
+    if (filterType === 'comprado') {
+        filtered = filtered.filter(i => i.completed);
+    } else if (filterType === 'pendente') {
+        filtered = filtered.filter(i => !i.completed);
+    } else if (filterType !== 'all') {
+        filtered = filtered.filter(i => i.priority === filterType);
+    }
+
+    if (!currentSearchTerm) {
+        return filtered;
+    }
+
+    const term = currentSearchTerm.toLowerCase();
+    return filtered.filter((item) => {
+        const haystack = [item.name, item.notes, item.comodo, item.section, item.priority, item.responsavel]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+        return haystack.includes(term);
+    });
 }
 
 // Get responsavel label
@@ -909,6 +935,47 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         renderAll(filter);
     });
 });
+
+const searchInput = document.getElementById('itemSearchInput');
+const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+if (searchInput) {
+    searchInput.addEventListener('input', () => {
+        currentSearchTerm = searchInput.value.trim();
+        renderAll(currentFilter);
+    });
+}
+
+if (clearSearchBtn) {
+    clearSearchBtn.addEventListener('click', () => {
+        currentSearchTerm = '';
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.focus();
+        }
+        renderAll(currentFilter);
+    });
+}
+
+const addItemPanel = document.getElementById('addItemPanel');
+const openAddItemBtn = document.getElementById('openAddItemBtn');
+const closeAddItemBtn = document.getElementById('closeAddItemBtn');
+
+function openAddPanel() {
+    if (addItemPanel) addItemPanel.classList.add('open');
+}
+
+function closeAddPanel() {
+    if (addItemPanel) addItemPanel.classList.remove('open');
+}
+
+if (openAddItemBtn) {
+    openAddItemBtn.addEventListener('click', openAddPanel);
+}
+
+if (closeAddItemBtn) {
+    closeAddItemBtn.addEventListener('click', closeAddPanel);
+}
 
 document.querySelectorAll('.view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1335,7 +1402,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setActiveView(state.view || 'roompages');
-    renderAll(currentFilter);
+    loadDataFromLocalStorage();
 
     console.log('App inicializada, aguardando conexão com Firestore...');
     // Firestore will initialize automatically when ready
